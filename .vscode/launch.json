@@ -1,0 +1,26 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "projectName": "NUF429ZIGNUCMTC",
+    "configurations": [
+        {
+            "name": "Cortex Debug NUF429ZIGNUCMTC",
+            "cwd": "${workspaceRoot}",
+            "executable": "./build/NUF429ZIGNUCMTC.elf",
+            "request": "launch", // "attach" to silently attach to MCU
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "device": "STM32F429ZI",
+            "interface": "swd",
+            "runToMEntryPoint": true,
+            //"preLaunchTask": "build all",
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32f4x.cfg"
+            ],
+            "svdFile": "./STM32F427.svd"
+        }
+    ]
+}
