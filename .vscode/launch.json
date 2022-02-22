@@ -3,12 +3,12 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "projectName": "NUF429ZIGNUCMTC",
+    "projectName": "LivSynth_Nucleo",
     "configurations": [
         {
-            "name": "Cortex Debug NUF429ZIGNUCMTC",
+            "name": "Cortex Debug LivSynth_Nucleo",
             "cwd": "${workspaceRoot}",
-            "executable": "./build/NUF429ZIGNUCMTC.elf",
+            "executable": "./build/LivSynth_Nucleo.elf",
             "request": "launch", // "attach" to silently attach to MCU
             "type": "cortex-debug",
             "servertype": "openocd",

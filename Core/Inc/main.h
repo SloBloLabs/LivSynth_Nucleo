@@ -73,6 +73,9 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define USER_BUTTON_Pin LL_GPIO_PIN_13
+#define USER_BUTTON_GPIO_Port GPIOC
+#define USER_BUTTON_EXTI_IRQn EXTI15_10_IRQn
 #define LED_GREEN_Pin LL_GPIO_PIN_0
 #define LED_GREEN_GPIO_Port GPIOB
 #define LED_RED_Pin LL_GPIO_PIN_14
@@ -92,7 +95,9 @@ void Error_Handler(void);
                                                                  0 bit  for subpriority */
 #endif
 /* USER CODE BEGIN Private defines */
-
+void tick(void);
+void Beat_Callback();
+void UserButton_Callback(void);
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

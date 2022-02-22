@@ -38,6 +38,7 @@ then
 
 Tested on
  - Mac
+ - Linux
 
 ---
 
@@ -49,4 +50,4 @@ Upload to github
  - git commit -m "First commit"
  - git branch -M main
  - git remote add origin https://github.com/SloBloLabs/<"ProjectRepo">.git
- - git push -u origin master
+ - git push -u origin main
