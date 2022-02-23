@@ -192,14 +192,8 @@ void Beat_Callback(void) {
 void UserButton_Callback(void) {
   uint32_t buttonState = LL_GPIO_IsInputPinSet(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin);
   if(buttonState) {
-    LL_GPIO_SetOutputPin(LED_RED_GPIO_Port, LED_RED_Pin);
-    LL_TIM_EnableCounter(TIM1);
-  } else {
-    LL_GPIO_ResetOutputPin(LED_RED_GPIO_Port, LED_RED_Pin);
-    LL_TIM_DisableCounter(TIM1);
+    buttonPressed();
   }
-  // TODO: modify TIM1 counter enable bit CEN in TIM1_CR1 to start / stop the sequencer
-  printf("UserButton is %ld\n", buttonState);
 }
 /* USER CODE END 4 */
 

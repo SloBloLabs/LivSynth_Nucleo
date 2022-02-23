@@ -4,22 +4,18 @@
 
 static volatile uint32_t _tick;
 static volatile uint32_t _beat;
+static volatile float    _bpm;
+static volatile uint32_t _sequencerState;
 
 void appMain() {
     // Configure and enable Systick timer including interrupt
     SysTick_Config(SystemCoreClock / 1000 - 1);
-
-    uint32_t ARR_VALUE = bpm2ARR(120.);
-    printf("ARR_VALUE = %ld\n", ARR_VALUE);
-    LL_TIM_SetAutoReload(TIM2, ARR_VALUE);
-    _beat = 0;
+    stopSequencer();
 
     // Enable TIM2 update event interrupt (Call TIM2_IRQHandler)
     LL_TIM_EnableIT_UPDATE(TIM2);
-    // Start TIM2
-    LL_TIM_EnableCounter(TIM2);
-    // Generate initial update event (sequencer beats immediately upon start)
-    LL_TIM_GenerateEvent_UPDATE(TIM2);
+
+    _bpm = 120.;
 
     uint32_t startMillis, endMillis, logMillis = 0;
 
@@ -46,12 +42,22 @@ void appTick(void) {
     ++_tick;
 }
 
+void buttonPressed() {
+    if(_sequencerState == 1) {
+        stopSequencer();
+    } else if(_sequencerState == 0) {
+        startSequencer(_bpm);
+    }
+}
+
 void appBeat(void) {
     ++_beat;
     printf("Beat %ld\n", _beat);
     LL_GPIO_SetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+    LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_6);
     LL_mDelay(5);
     LL_GPIO_ResetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+    LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_6);
 }
 
 uint32_t bpm2ARR(float bpm) {
@@ -69,14 +75,31 @@ uint32_t bpm2ARR(float bpm) {
     PSC = 15000 -> 6000Hz
     ARR = 18000 -> 20bpm
     ARR = 1200  -> 300bpm
-    
-    ARR(x) = mx + b = dy/dx x + b = -16800x + 18000   | 0 <= x <= 1
 
-    y = -16800/280 x + b
-    b = y + 16800/280 x
-    b = 18000 + 16800/280 * 20 = 19200
-    ARR(x) = mx + b = dy/dx x + b = -16800/280 x + 19200 | 20 <= x <= 300
+    ARR = 6000 / bpm * 60;
+    
     */
-    float arr = -60 * bpm + 19200.;
+    float arr = 360000. / bpm;
     return (static_cast<uint32_t>(arr));
+}
+
+void startSequencer(float bpm) {
+    uint32_t ARR_VALUE = bpm2ARR(bpm);
+    printf("ARR_VALUE = %ld\n", ARR_VALUE);
+    LL_TIM_SetAutoReload(TIM2, ARR_VALUE);
+    LL_TIM_SetCounter(TIM2, 0);
+    _beat = 0;
+
+    // Start TIM2
+    LL_TIM_EnableCounter(TIM2);
+    // Generate initial update event (sequencer beats immediately upon start)
+    LL_TIM_GenerateEvent_UPDATE(TIM2);
+    _sequencerState = 1;
+    printf("Sequencer started.\n");
+}
+
+void stopSequencer() {
+    LL_TIM_DisableCounter(TIM2);
+    _sequencerState = 0;
+    printf("Sequencer stopped.\n");
 }
