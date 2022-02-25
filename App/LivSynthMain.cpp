@@ -6,16 +6,27 @@ static volatile uint32_t _tick;
 static volatile uint32_t _beat;
 static volatile float    _bpm;
 static volatile uint32_t _sequencerState;
+static volatile uint32_t _sequenceDivisor;
+static volatile float    _gateTime;
 
 void appMain() {
     // Configure and enable Systick timer including interrupt
-    SysTick_Config(SystemCoreClock / 1000 - 1);
+    SysTick_Config((SystemCoreClock / 1000) - 1);
     stopSequencer();
 
     // Enable TIM2 update event interrupt (Call TIM2_IRQHandler)
     LL_TIM_EnableIT_UPDATE(TIM2);
+    // Enable TIM2 update event on CC1
+    LL_TIM_EnableIT_CC1(TIM2);
 
     _bpm = 120.;
+    //_sequenceDivisor = 1; // 4th
+    _sequenceDivisor = 2; // 8th
+    //_sequenceDivisor = 4; // 16th
+
+    _gateTime = .02; // 20ms
+
+    startSequencer(_bpm);
 
     uint32_t startMillis, endMillis, logMillis = 0;
 
@@ -50,14 +61,27 @@ void buttonPressed() {
     }
 }
 
-void appBeat(void) {
-    ++_beat;
-    printf("Beat %ld\n", _beat);
-    LL_GPIO_SetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
-    LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_6);
-    LL_mDelay(5);
-    LL_GPIO_ResetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
-    LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_6);
+void appBeat(uint32_t type) {
+    switch(type) {
+    case 0:
+        ++_beat;
+        DBG("Beat %ld", _beat);
+        LL_GPIO_SetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+        LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_6);
+        //LL_mDelay(5);
+        //LL_GPIO_ResetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+        //LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_6);
+        break;
+    case 1:
+        //LL_GPIO_SetOutputPin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+        //LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_15);
+        //LL_mDelay(5);
+        LL_GPIO_ResetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+        LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_6);
+        break;
+    default:
+        ;
+    }
 }
 
 uint32_t bpm2ARR(float bpm) {
@@ -79,27 +103,34 @@ uint32_t bpm2ARR(float bpm) {
     ARR = 6000 / bpm * 60;
     
     */
-    float arr = 360000. / bpm;
+    float arr = 360000. / bpm / _sequenceDivisor;
     return (static_cast<uint32_t>(arr));
 }
 
 void startSequencer(float bpm) {
     uint32_t ARR_VALUE = bpm2ARR(bpm);
-    printf("ARR_VALUE = %ld\n", ARR_VALUE);
-    LL_TIM_SetAutoReload(TIM2, ARR_VALUE);
+    DBG("ARR_VALUE = %ld", ARR_VALUE);
+    LL_TIM_SetAutoReload(TIM2, ARR_VALUE - 1);
     LL_TIM_SetCounter(TIM2, 0);
     _beat = 0;
+
+    // Enable OC1 for 8th beats
+    ARR_VALUE = 6000 * _gateTime;
+    LL_TIM_OC_SetCompareCH1(TIM2, ARR_VALUE);
+    //LL_TIM_GenerateEvent_CC1(TIM2);
 
     // Start TIM2
     LL_TIM_EnableCounter(TIM2);
     // Generate initial update event (sequencer beats immediately upon start)
     LL_TIM_GenerateEvent_UPDATE(TIM2);
     _sequencerState = 1;
-    printf("Sequencer started.\n");
+    DBG("Sequencer started.");
 }
 
 void stopSequencer() {
     LL_TIM_DisableCounter(TIM2);
+    LL_GPIO_ResetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+    LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_6);
     _sequencerState = 0;
-    printf("Sequencer stopped.\n");
+    DBG("Sequencer stopped.");
 }

@@ -181,12 +181,12 @@ static void MX_NVIC_Init(void)
 /* USER CODE BEGIN 4 */
 
 void tick(void) {
-  //LL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+  LL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
   appTick();
 }
 
-void Beat_Callback(void) {
-    appBeat();
+void Beat_Callback(uint32_t type) {
+    appBeat(type);
 }
 
 void UserButton_Callback(void) {

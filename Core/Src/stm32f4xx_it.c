@@ -198,6 +198,20 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles ADC1, ADC2 and ADC3 global interrupts.
+  */
+void ADC_IRQHandler(void)
+{
+  /* USER CODE BEGIN ADC_IRQn 0 */
+
+  /* USER CODE END ADC_IRQn 0 */
+
+  /* USER CODE BEGIN ADC_IRQn 1 */
+
+  /* USER CODE END ADC_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM2 global interrupt.
   */
 void TIM2_IRQHandler(void)
@@ -205,9 +219,13 @@ void TIM2_IRQHandler(void)
   /* USER CODE BEGIN TIM2_IRQn 0 */
   if(LL_TIM_IsActiveFlag_UPDATE(TIM2) != RESET) {
     LL_TIM_ClearFlag_UPDATE(TIM2);
+    Beat_Callback(0);
   }
 
-  Beat_Callback();
+  if(LL_TIM_IsActiveFlag_CC1(TIM2) != RESET) {
+    LL_TIM_ClearFlag_CC1(TIM2);
+    Beat_Callback(1);
+  }
   /* USER CODE END TIM2_IRQn 0 */
   /* USER CODE BEGIN TIM2_IRQn 1 */
 

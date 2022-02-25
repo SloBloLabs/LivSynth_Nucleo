@@ -6,7 +6,7 @@ extern "C" {
 
 void appMain(void);
 void appTick(void);
-void appBeat(void);
+void appBeat(uint32_t type);
 void buttonPressed();
 uint32_t bpm2ARR(float bpm);
 void startSequencer(float bpm);

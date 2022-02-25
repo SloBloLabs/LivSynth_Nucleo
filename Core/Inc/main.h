@@ -47,7 +47,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "swvPrint.hpp"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -96,7 +96,7 @@ void Error_Handler(void);
 #endif
 /* USER CODE BEGIN Private defines */
 void tick(void);
-void Beat_Callback();
+void Beat_Callback(uint32_t type);
 void UserButton_Callback(void);
 /* USER CODE END Private defines */
 
