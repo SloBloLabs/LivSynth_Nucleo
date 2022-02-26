@@ -180,21 +180,6 @@ static void MX_NVIC_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void tick(void) {
-  LL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
-  appTick();
-}
-
-void Beat_Callback(uint32_t type) {
-    appBeat(type);
-}
-
-void UserButton_Callback(void) {
-  uint32_t buttonState = LL_GPIO_IsInputPinSet(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin);
-  if(buttonState) {
-    buttonPressed();
-  }
-}
 /* USER CODE END 4 */
 
 /**

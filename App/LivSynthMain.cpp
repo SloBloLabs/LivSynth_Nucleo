@@ -53,11 +53,14 @@ void appTick(void) {
     ++_tick;
 }
 
-void buttonPressed() {
-    if(_sequencerState == 1) {
-        stopSequencer();
-    } else if(_sequencerState == 0) {
-        startSequencer(_bpm);
+void appButtonPressed() {
+    uint32_t buttonState = LL_GPIO_IsInputPinSet(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin);
+    if(buttonState) {
+        if(_sequencerState == 1) {
+            stopSequencer();
+        } else if(_sequencerState == 0) {
+            startSequencer(_bpm);
+        }
     }
 }
 
@@ -68,14 +71,8 @@ void appBeat(uint32_t type) {
         DBG("Beat %ld", _beat);
         LL_GPIO_SetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
         LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_6);
-        //LL_mDelay(5);
-        //LL_GPIO_ResetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
-        //LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_6);
         break;
     case 1:
-        //LL_GPIO_SetOutputPin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
-        //LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_15);
-        //LL_mDelay(5);
         LL_GPIO_ResetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
         LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_6);
         break;
@@ -101,7 +98,6 @@ uint32_t bpm2ARR(float bpm) {
     ARR = 1200  -> 300bpm
 
     ARR = 6000 / bpm * 60;
-    
     */
     float arr = 360000. / bpm / _sequenceDivisor;
     return (static_cast<uint32_t>(arr));

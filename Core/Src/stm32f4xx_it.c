@@ -22,6 +22,7 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "LivSynthMain.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -183,7 +184,7 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-  tick();
+  appTick();
   /* USER CODE END SysTick_IRQn 0 */
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
@@ -219,12 +220,14 @@ void TIM2_IRQHandler(void)
   /* USER CODE BEGIN TIM2_IRQn 0 */
   if(LL_TIM_IsActiveFlag_UPDATE(TIM2) != RESET) {
     LL_TIM_ClearFlag_UPDATE(TIM2);
-    Beat_Callback(0);
+    //Beat_Callback(0);
+    appBeat(0);
   }
 
   if(LL_TIM_IsActiveFlag_CC1(TIM2) != RESET) {
     LL_TIM_ClearFlag_CC1(TIM2);
-    Beat_Callback(1);
+    //Beat_Callback(1);
+    appBeat(1);
   }
   /* USER CODE END TIM2_IRQn 0 */
   /* USER CODE BEGIN TIM2_IRQn 1 */
@@ -247,7 +250,7 @@ void EXTI15_10_IRQHandler(void)
     /* USER CODE END LL_EXTI_LINE_13 */
   }
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
-  UserButton_Callback();
+  appButtonPressed();
   /* USER CODE END EXTI15_10_IRQn 1 */
 }
 

@@ -95,9 +95,7 @@ void Error_Handler(void);
                                                                  0 bit  for subpriority */
 #endif
 /* USER CODE BEGIN Private defines */
-void tick(void);
-void Beat_Callback(uint32_t type);
-void UserButton_Callback(void);
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
