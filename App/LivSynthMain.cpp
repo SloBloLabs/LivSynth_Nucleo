@@ -2,7 +2,7 @@
 #include "main.h"
 #include <cstdio>
 
-#define NUM_ADC_VALUES 1
+#define NUM_ADC_VALUES 2
 
 static volatile uint32_t _tick;
 static volatile uint32_t _beat;
@@ -56,7 +56,7 @@ void appMain() {
         startMillis = endMillis;
         if(startMillis - logMillis > 999) {
             logMillis = startMillis;
-            DBG("ADC1_IN0=%d", _adcValues[0]);
+            DBG("ADC0=%d, ADC3=%d", _adcValues[0], _adcValues[1]);
         }
         //while(!LL_GPIO_IsInputPinSet(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin));
 
@@ -88,7 +88,7 @@ void appBeat(uint32_t type) {
     switch(type) {
     case 0:
         ++_beat;
-        DBG("Beat %ld", _beat);
+        //DBG("Beat %ld", _beat);
         LL_GPIO_SetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
         //LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_6);
         break;
