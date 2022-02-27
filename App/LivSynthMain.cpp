@@ -46,17 +46,21 @@ void appMain() {
 
     _gateTime = .02; // 20ms
 
-    startSequencer(_bpm);
+    startSequencer();
 
-    uint32_t startMillis, endMillis, logMillis = 0;
+    uint32_t startMillis, endMillis, logMillis = 0, updateMillis = 0;
 
     endMillis = _tick;
 
     while(true) {
         startMillis = endMillis;
+        if(startMillis - updateMillis > 199) {
+            updateMillis = startMillis;
+            setTempo();
+        }
         if(startMillis - logMillis > 999) {
             logMillis = startMillis;
-            DBG("ADC0=%d, ADC3=%d", _adcValues[0], _adcValues[1]);
+            DBG("ADC0=%d, ADC3=%d, bpm=%.2f", _adcValues[0], _adcValues[1], _bpm);
         }
         //while(!LL_GPIO_IsInputPinSet(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin));
 
@@ -79,7 +83,7 @@ void appButtonPressed() {
         if(_sequencerState == 1) {
             stopSequencer();
         } else if(_sequencerState == 0) {
-            startSequencer(_bpm);
+            startSequencer();
         }
     }
 }
@@ -88,7 +92,7 @@ void appBeat(uint32_t type) {
     switch(type) {
     case 0:
         ++_beat;
-        //DBG("Beat %ld", _beat);
+        DBG("Beat %ld", _beat);
         LL_GPIO_SetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
         //LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_6);
         break;
@@ -104,6 +108,19 @@ void appBeat(uint32_t type) {
 void appDMA2Request() {
     LL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
     LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_15);
+    // TODO: apply some filtering and smoothing
+}
+
+float adc2bpm(uint16_t adcValue) {
+    /*
+    0 - 4095 ^= 20 - 300 bpm
+    0    -> 20
+    4095 -> 300
+    f(x) = mx + b = dy/dx * x + b = (300 - 20) / 4095 * x + b
+    f(0) = 280/4095 * 0 + b = 20
+    f(x) = 280/4096 * x + 20
+    */
+   return 280.f/4096 * adcValue + 20.;
 }
 
 uint32_t bpm2ARR(float bpm) {
@@ -116,8 +133,6 @@ uint32_t bpm2ARR(float bpm) {
     source clock = 90MHz
     90MHz / x = 6kHz -> x = 90MHz / 6kHz = 15000
 
-    TIM2
-    Presaler(max) = 65536
     PSC = 15000 -> 6000Hz
     ARR = 18000 -> 20bpm
     ARR = 1200  -> 300bpm
@@ -128,16 +143,16 @@ uint32_t bpm2ARR(float bpm) {
     return (static_cast<uint32_t>(arr));
 }
 
-void startSequencer(float bpm) {
-    uint32_t ARR_VALUE = bpm2ARR(bpm);
+void startSequencer() {
+    setTempo();
+    //uint32_t ARR_VALUE = bpm2ARR(bpm);
     //DBG("ARR_VALUE = %ld", ARR_VALUE);
-    LL_TIM_SetAutoReload(TIM2, ARR_VALUE - 1);
+    //LL_TIM_SetAutoReload(TIM2, ARR_VALUE - 1);
     LL_TIM_SetCounter(TIM2, 0);
     _beat = 0;
 
-    // Enable OC1 for 8th beats
-    ARR_VALUE = 6000 * _gateTime;
-    LL_TIM_OC_SetCompareCH1(TIM2, ARR_VALUE);
+    // Enable OC1 for gate off
+    LL_TIM_OC_SetCompareCH1(TIM2, 6000 * _gateTime);
     //LL_TIM_GenerateEvent_CC1(TIM2);
 
     // Start TIM2
@@ -154,4 +169,15 @@ void stopSequencer() {
     //LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_6);
     _sequencerState = 0;
     DBG("Sequencer stopped.");
+}
+
+void setTempo() {
+    _bpm = adc2bpm(_adcValues[0]);
+    //DBG("Tempo: %.2f", bpm);
+    uint32_t ARR = bpm2ARR(_bpm);
+    uint32_t CNT = LL_TIM_GetCounter(TIM2);
+    if(CNT >= ARR) {
+        LL_TIM_SetCounter(TIM2, CNT % ARR);
+    }
+    LL_TIM_SetAutoReload(TIM2, ARR - 1);
 }

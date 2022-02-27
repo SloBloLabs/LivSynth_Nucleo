@@ -91,6 +91,7 @@ target_link_options(${EXECUTABLE} PRIVATE
     -lm # add math libraries
     -lstdc++ # add standard C++ libraries
     -lsupc++ # add support C++ libraries
+    -u _printf_float # enable float formatting in printf
     -Wl,--end-group
     -Wl,--gc-sections # garbage collector for sections so the linker can choose which sections to use after compilation (omits unused stuff, optimized code size)
     # -Wl,--print-gc-sections
