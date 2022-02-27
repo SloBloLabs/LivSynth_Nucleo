@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #define NUM_ADC_VALUES 2
+#define DAC_DELAY_VOLTAGE_SETTLING_CYCLES 29
 
 static volatile uint32_t _tick;
 static volatile uint32_t _beat;
@@ -12,6 +13,7 @@ static volatile uint32_t _sequenceDivisor;
 static volatile float    _gateTime;
 static volatile uint16_t _adcValues[NUM_ADC_VALUES];
 static volatile float    _pitch;
+static volatile uint32_t _dacValue;
 
 void appMain() {
     // Configure and enable Systick timer including interrupt
@@ -32,6 +34,14 @@ void appMain() {
 
     LL_ADC_Enable(ADC1);
     LL_ADC_REG_StartConversionSWStart(ADC1);
+
+    LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_1, 0x00);
+    LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_1);
+    volatile uint32_t wait_loop_index = ((LL_DAC_DELAY_STARTUP_VOLTAGE_SETTLING_US * (SystemCoreClock / (100000 * 2))) / 10);
+    while(wait_loop_index != 0) {
+        wait_loop_index--;
+    }
+    LL_DAC_EnableTrigger(DAC1, LL_DAC_CHANNEL_1);
 
     stopSequencer();
 
@@ -105,6 +115,19 @@ void appBeat(uint32_t type) {
     default:
         ;
     }
+
+    _dacValue = (_beat % 2) == 0 ? 0x00 : 0xFFF;
+    LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_1, _dacValue);
+    LL_DAC_TrigSWConversion(DAC1, LL_DAC_CHANNEL_1);
+    volatile uint32_t wait_loop_index = DAC_DELAY_VOLTAGE_SETTLING_CYCLES;
+    while(wait_loop_index != 0) {
+        wait_loop_index--;
+    }
+    if(_dacValue) {
+        LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_6);
+    } else {
+        LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_6);
+    }
 }
 
 void appDMA2Request() {
@@ -137,6 +160,7 @@ float adc2Volt(uint16_t adcValue) {
 uint32_t bpm2ARR(float bpm) {
     /*
     target clock: 20bpm - 300bpm
+    1 bpm = 1 / 60 Hz
     resolution = 0,01 bpm => 0,00016666s = 1/6000Hz
     20bpm = ,33333Hz =  2000 * 1/6000Hz
     300bpm = 5Hz     = 30000 * 1/6000Hz
