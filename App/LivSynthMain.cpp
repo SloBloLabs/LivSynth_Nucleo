@@ -11,6 +11,7 @@ static volatile uint32_t _sequencerState;
 static volatile uint32_t _sequenceDivisor;
 static volatile float    _gateTime;
 static volatile uint16_t _adcValues[NUM_ADC_VALUES];
+static volatile float    _pitch;
 
 void appMain() {
     // Configure and enable Systick timer including interrupt
@@ -57,10 +58,11 @@ void appMain() {
         if(startMillis - updateMillis > 199) {
             updateMillis = startMillis;
             setTempo();
+            setPitch();
         }
         if(startMillis - logMillis > 999) {
             logMillis = startMillis;
-            DBG("ADC0=%d, ADC3=%d, bpm=%.2f", _adcValues[0], _adcValues[1], _bpm);
+            DBG("ADC0=%d, ADC3=%d, bpm=%.2f, pitch=%.2f", _adcValues[0], _adcValues[1], _bpm, _pitch);
         }
         //while(!LL_GPIO_IsInputPinSet(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin));
 
@@ -123,6 +125,15 @@ float adc2bpm(uint16_t adcValue) {
    return 280.f/4096 * adcValue + 20.;
 }
 
+float adc2Volt(uint16_t adcValue) {
+    /*
+    we want 5 octaves
+    0 - 4096 ^= 0 - 5 Volt
+    f(x) = 5/4096 * x
+    */
+    return 5.f/4096 * adcValue;
+}
+
 uint32_t bpm2ARR(float bpm) {
     /*
     target clock: 20bpm - 300bpm
@@ -180,4 +191,8 @@ void setTempo() {
         LL_TIM_SetCounter(TIM2, CNT % ARR);
     }
     LL_TIM_SetAutoReload(TIM2, ARR - 1);
+}
+
+void setPitch() {
+    _pitch = adc2Volt(_adcValues[1]);
 }
