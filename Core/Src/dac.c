@@ -51,6 +51,7 @@ void MX_DAC_Init(void)
   /* USER CODE BEGIN DAC_Init 1 */
 
   /* USER CODE END DAC_Init 1 */
+
   /** DAC channel OUT1 config
   */
   DAC_InitStruct.TriggerSource = LL_DAC_TRIG_SOFTWARE;

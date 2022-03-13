@@ -14,6 +14,7 @@ static volatile float    _gateTime;
 static volatile uint16_t _adcValues[NUM_ADC_VALUES];
 static volatile float    _pitch;
 static volatile uint32_t _dacValue;
+static volatile uint8_t  _buttonState;
 
 void appMain() {
     // Configure and enable Systick timer including interrupt
@@ -35,6 +36,7 @@ void appMain() {
     LL_ADC_Enable(ADC1);
     LL_ADC_REG_StartConversionSWStart(ADC1);
 
+    // Start DAC
     LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_1, 0x00);
     LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_1);
     volatile uint32_t wait_loop_index = ((LL_DAC_DELAY_STARTUP_VOLTAGE_SETTLING_US * (SystemCoreClock / (100000 * 2))) / 10);
@@ -42,6 +44,24 @@ void appMain() {
         wait_loop_index--;
     }
     LL_DAC_EnableTrigger(DAC1, LL_DAC_CHANNEL_1);
+
+    // Start SPI
+    LL_DMA_ConfigAddresses(
+        DMA1,
+        LL_DMA_STREAM_0,
+        LL_SPI_DMA_GetRegAddr(SPI3),
+        (uint32_t)&_buttonState,
+        LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_STREAM_0)
+    );
+    LL_DMA_SetDataLength(DMA1, LL_DMA_STREAM_0, 1);
+    LL_DMA_EnableIT_TC(DMA1, LL_DMA_STREAM_0);
+
+    LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_2);
+    LL_GPIO_SetOutputPin(GPIOD, LL_GPIO_PIN_2);
+    LL_SPI_EnableDMAReq_RX(SPI3);
+    LL_SPI_Enable(SPI3);
+
+    LL_DMA_EnableStream(DMA1, LL_DMA_STREAM_0);
 
     stopSequencer();
 
@@ -72,7 +92,7 @@ void appMain() {
         }
         if(startMillis - logMillis > 999) {
             logMillis = startMillis;
-            DBG("ADC0=%d, ADC3=%d, bpm=%.2f, pitch=%.2f", _adcValues[0], _adcValues[1], _bpm, _pitch);
+            DBG("ADC0=%d, ADC3=%d, bpm=%.2f, pitch=%.2f, buttons=0x%02X", _adcValues[0], _adcValues[1], _bpm, _pitch, _buttonState);
         }
         //while(!LL_GPIO_IsInputPinSet(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin));
 
@@ -130,10 +150,17 @@ void appBeat(uint32_t type) {
     }
 }
 
-void appDMA2Request() {
+void appADCCompleteRequest() {
     LL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
     LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_15);
     // TODO: apply some filtering and smoothing
+}
+
+void appSPICompleteRequest() {
+    // SR Load
+    LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_2);
+    // SR Shift
+    LL_GPIO_SetOutputPin(GPIOD, LL_GPIO_PIN_2);
 }
 
 float adc2bpm(uint16_t adcValue) {
