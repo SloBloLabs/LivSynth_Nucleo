@@ -1,40 +1,26 @@
 #include "LivSynthMain.hpp"
 #include "main.h"
+#include "System.h"
+#include "Adc.h"
 #include <cstdio>
+#include <bitset>
 
-#define NUM_ADC_VALUES 2
 #define DAC_DELAY_VOLTAGE_SETTLING_CYCLES 29
 
-static volatile uint32_t _tick;
 static volatile uint32_t _beat;
 static volatile float    _bpm;
 static volatile uint32_t _sequencerState;
 static volatile uint32_t _sequenceDivisor;
 static volatile float    _gateTime;
-static volatile uint16_t _adcValues[NUM_ADC_VALUES];
 static volatile float    _pitch;
 static volatile uint32_t _dacValue;
 static volatile uint8_t  _buttonState;
 
+static Adc adc;
+
 void appMain() {
-    // Configure and enable Systick timer including interrupt
-    SysTick_Config((SystemCoreClock / 1000) - 1);
-
-    // Start DMA and ADC
-    LL_DMA_ConfigAddresses(
-        DMA2,
-        LL_DMA_STREAM_0,
-        LL_ADC_DMA_GetRegAddr(ADC1, LL_ADC_DMA_REG_REGULAR_DATA),
-        (uint32_t)&_adcValues,
-        LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
-    LL_DMA_SetDataLength(DMA2, LL_DMA_STREAM_0, NUM_ADC_VALUES);
-    // Optional! DMA will transfer even without calling ISR
-    // Can be enabled for debugging purposes
-    //LL_DMA_EnableIT_TC(DMA2, LL_DMA_STREAM_0);
-    LL_DMA_EnableStream(DMA2, LL_DMA_STREAM_0);
-
-    LL_ADC_Enable(ADC1);
-    LL_ADC_REG_StartConversionSWStart(ADC1);
+    System::init();
+    adc.init();
 
     // Start DAC
     LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_1, 0x00);
@@ -81,7 +67,8 @@ void appMain() {
 
     uint32_t startMillis, endMillis, logMillis = 0, updateMillis = 0;
 
-    endMillis = _tick;
+    //endMillis = _tick;
+    endMillis = System::ticks();
 
     while(true) {
         startMillis = endMillis;
@@ -92,7 +79,9 @@ void appMain() {
         }
         if(startMillis - logMillis > 999) {
             logMillis = startMillis;
-            DBG("ADC0=%d, ADC3=%d, bpm=%.2f, pitch=%.2f, buttons=0x%02X", _adcValues[0], _adcValues[1], _bpm, _pitch, _buttonState);
+            std::bitset<8> myBitset;
+            DBG("ADC0=%d, ADC3=%d, bpm=%.2f, pitch=%.2f, buttons=0x%02X", adc.channel(0), adc.channel(1), _bpm, _pitch, _buttonState);
+            //LL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
         }
         //while(!LL_GPIO_IsInputPinSet(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin));
 
@@ -101,12 +90,12 @@ void appMain() {
             printf("loop %d\n", i);
             LL_mDelay(50);
         }*/
-        endMillis = _tick;
+        endMillis = System::ticks();
     }
 }
 
 void appTick(void) {
-    ++_tick;
+    System::tick();
 }
 
 void appButtonPressed() {
@@ -151,9 +140,10 @@ void appBeat(uint32_t type) {
 }
 
 void appADCCompleteRequest() {
-    LL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+    // only called if interrupt is enabled
+    // see Adc.cpp -> LL_DMA_EnableIT_TC(DMA2, LL_DMA_STREAM_0)
+    //LL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
     LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_15);
-    // TODO: apply some filtering and smoothing
 }
 
 void appSPICompleteRequest() {
@@ -234,7 +224,7 @@ void stopSequencer() {
 }
 
 void setTempo() {
-    _bpm = adc2bpm(_adcValues[0]);
+    _bpm = adc2bpm(adc.channel(0));
     //DBG("Tempo: %.2f", bpm);
     uint32_t ARR = bpm2ARR(_bpm);
     uint32_t CNT = LL_TIM_GetCounter(TIM2);
@@ -245,5 +235,5 @@ void setTempo() {
 }
 
 void setPitch() {
-    _pitch = adc2Volt(_adcValues[1]);
+    _pitch = adc2Volt(adc.channel(0));
 }
