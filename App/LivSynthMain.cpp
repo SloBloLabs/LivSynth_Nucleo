@@ -2,8 +2,11 @@
 #include "main.h"
 #include "System.h"
 #include "Adc.h"
+#include "ShiftRegister.h"
 #include <cstdio>
 #include <bitset>
+
+#define CCMRAM_BSS __attribute__((section(".ccmram")))
 
 #define DAC_DELAY_VOLTAGE_SETTLING_CYCLES 29
 
@@ -14,13 +17,14 @@ static volatile uint32_t _sequenceDivisor;
 static volatile float    _gateTime;
 static volatile float    _pitch;
 static volatile uint32_t _dacValue;
-static volatile uint8_t  _buttonState;
 
 static Adc adc;
+static CCMRAM_BSS ShiftRegister shiftRegister;
 
 void appMain() {
     System::init();
     adc.init();
+    shiftRegister.init();
 
     // Start DAC
     LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_1, 0x00);
@@ -30,24 +34,6 @@ void appMain() {
         wait_loop_index--;
     }
     LL_DAC_EnableTrigger(DAC1, LL_DAC_CHANNEL_1);
-
-    // Start SPI
-    LL_DMA_ConfigAddresses(
-        DMA1,
-        LL_DMA_STREAM_0,
-        LL_SPI_DMA_GetRegAddr(SPI3),
-        (uint32_t)&_buttonState,
-        LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_STREAM_0)
-    );
-    LL_DMA_SetDataLength(DMA1, LL_DMA_STREAM_0, 1);
-    LL_DMA_EnableIT_TC(DMA1, LL_DMA_STREAM_0);
-
-    LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_2);
-    LL_GPIO_SetOutputPin(GPIOD, LL_GPIO_PIN_2);
-    LL_SPI_EnableDMAReq_RX(SPI3);
-    LL_SPI_Enable(SPI3);
-
-    LL_DMA_EnableStream(DMA1, LL_DMA_STREAM_0);
 
     stopSequencer();
 
@@ -65,35 +51,33 @@ void appMain() {
 
     startSequencer();
 
-    uint32_t startMillis, endMillis, logMillis = 0, updateMillis = 0;
-
-    //endMillis = _tick;
-    endMillis = System::ticks();
+    uint32_t curMillis
+           , logMillis    = 0
+           , updateMillis = 0;
 
     while(true) {
-        startMillis = endMillis;
-        if(startMillis - updateMillis > 199) {
-            updateMillis = startMillis;
+
+        curMillis = System::ticks();
+        
+        // update sequencer input and state
+        if(curMillis - updateMillis > 199) {
+            updateMillis = curMillis;
+
+            std::bitset<8> myBitset;
+            shiftRegister.process();
             setTempo();
             setPitch();
         }
-        if(startMillis - logMillis > 999) {
-            logMillis = startMillis;
-            std::bitset<8> myBitset;
-            DBG("ADC0=%d, ADC3=%d, bpm=%.2f, pitch=%.2f, buttons=0x%02X", adc.channel(0), adc.channel(1), _bpm, _pitch, _buttonState);
-            //LL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+        
+        // render debug log output
+        if(curMillis - logMillis > 999) {
+            logMillis = curMillis;
+            DBG("ADC0=%d, ADC3=%d, bpm=%.2f, pitch=%.2f, buttons=0x%02X", adc.channel(0), adc.channel(1), _bpm, _pitch, shiftRegister.read(0));
         }
-        //while(!LL_GPIO_IsInputPinSet(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin));
-
-        /*for(uint8_t i = 0; i < 20; ++i) {
-            LL_GPIO_TogglePin(GPIOB, LED_GREEN_Pin|LED_RED_Pin|LED_BLUE_Pin);
-            printf("loop %d\n", i);
-            LL_mDelay(50);
-        }*/
-        endMillis = System::ticks();
     }
 }
 
+// glue code
 void appTick(void) {
     System::tick();
 }
@@ -144,13 +128,6 @@ void appADCCompleteRequest() {
     // see Adc.cpp -> LL_DMA_EnableIT_TC(DMA2, LL_DMA_STREAM_0)
     //LL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
     LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_15);
-}
-
-void appSPICompleteRequest() {
-    // SR Load
-    LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_2);
-    // SR Shift
-    LL_GPIO_SetOutputPin(GPIOD, LL_GPIO_PIN_2);
 }
 
 float adc2bpm(uint16_t adcValue) {

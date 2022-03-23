@@ -199,23 +199,6 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles DMA1 stream0 global interrupt.
-  */
-void DMA1_Stream0_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Stream0_IRQn 0 */
-  if(LL_DMA_IsActiveFlag_TC0(DMA1) != RESET) {
-    LL_DMA_ClearFlag_TC0(DMA1);
-    appSPICompleteRequest();
-  }
-  /* USER CODE END DMA1_Stream0_IRQn 0 */
-
-  /* USER CODE BEGIN DMA1_Stream0_IRQn 1 */
-
-  /* USER CODE END DMA1_Stream0_IRQn 1 */
-}
-
-/**
   * @brief This function handles TIM2 global interrupt.
   */
 void TIM2_IRQHandler(void)

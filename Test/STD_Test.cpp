@@ -38,4 +38,7 @@ int main()
     assert(b3.size() == 4);
     assert(b3.to_ullong() == 0b0100ULL);
     assert(b3.to_string() == "0100");
+
+    uint32_t x = 1UL;
+    std::cout << x << ", " << !x << "\n";
 }
