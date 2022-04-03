@@ -30,6 +30,7 @@ void appMain() {
     adc.init();
     shiftRegister.init();
     ledDriver.init();
+    ledDriver.enableTestMode();
     LL_mDelay(300);
 
     // Start DAC
@@ -60,7 +61,7 @@ void appMain() {
     uint32_t curMillis
            , logMillis    = 0
            , updateMillis = 0;
-
+    
     while(true) {
 
         curMillis = System::ticks();
@@ -80,6 +81,11 @@ void appMain() {
         if(curMillis - logMillis > 999) {
             logMillis = curMillis;
             DBG("ADC0=%d, ADC1=%d, bpm=%.2f, pitch=%.2f, buttons=0x%02X", adc.channel(0), adc.channel(1), _bpm, _pitch, shiftRegister.read(0));
+            if(ledDriver.ledEnabled()) {
+                ledDriver.ledDisable();
+            } else {
+                ledDriver.ledEnable();
+            }
         }
     }
 }

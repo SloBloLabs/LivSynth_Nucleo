@@ -15,15 +15,23 @@
 #define LED_ON         0
 #define LED_OFF        1
 
+#define MAX_R_VALUE    4095
+#define MAX_G_VALUE    4095
+#define MAX_B_VALUE    4095
+
 class LEDDriver {
 public:
     void init();
     void process();
     void notifyTxComplete();
     void notifyTxError();
-    void LEDDriver_setRGBLED_RGB(uint8_t led_number, uint16_t c_red, uint16_t c_green, uint16_t c_blue);
-    void LEDDriver_set_single_LED(uint8_t led_element_number, uint16_t brightness);
-
+    void ledEnable();
+    void ledDisable();
+    bool ledEnabled();
+    void setSingleLED(uint8_t led, uint16_t brightness);
+    void setColour(uint8_t led, float r, float g, float b);
+    void inline enableTestMode() { _testMode = true; };
+    void inline disableTestMode() { _testMode = false; };
 
 private:
     void resetChip(uint32_t chipNumber);
@@ -36,8 +44,6 @@ private:
     ErrorStatus sendData(uint8_t data);
     ErrorStatus sendData(uint8_t* data, uint32_t lenData);
     ErrorStatus sendSoftwareReset();
-    void ledEnable();
-    void ledDisable();
     
     uint8_t LEDDriver_get_cur_buf(void);
     uint8_t LEDDriver_get_cur_chip(void);
@@ -52,4 +58,11 @@ private:
     uint8_t _transmissionBusy = 0;
     uint16_t _pwmLeds[NUM_PWM_LED_CHIPS][NUM_LEDS_PER_CHIP][2];
     uint8_t _chipAddress[NUM_PWM_LED_CHIPS] = {1, 2};
+
+    // test mode
+    bool _testMode = 0;
+    float _runPhase = 0;
+    float _intensityPhase = 0;
+    float _amplitude = 0;
+    float _r, _g, _b;
 };
