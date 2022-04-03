@@ -41,4 +41,8 @@ int main()
 
     uint32_t x = 1UL;
     std::cout << x << ", " << !x << "\n";
+
+    uint16_t y = (7372 % 0x1000) - 1; // 0x1000 = 4096
+    std::cout << y << "\n";
+
 }

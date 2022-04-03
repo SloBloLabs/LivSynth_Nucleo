@@ -31,6 +31,7 @@ extern "C" {
 #include "stm32f4xx_ll_adc.h"
 #include "stm32f4xx_ll_dac.h"
 #include "stm32f4xx_ll_dma.h"
+#include "stm32f4xx_ll_i2c.h"
 #include "stm32f4xx_ll_rcc.h"
 #include "stm32f4xx_ll_bus.h"
 #include "stm32f4xx_ll_system.h"
@@ -48,7 +49,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "swvPrint.hpp"
+#include "swvPrint.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -81,6 +82,10 @@ void Error_Handler(void);
 #define LED_GREEN_GPIO_Port GPIOB
 #define LED_RED_Pin LL_GPIO_PIN_14
 #define LED_RED_GPIO_Port GPIOB
+#define LED_OEN_Pin LL_GPIO_PIN_1
+#define LED_OEN_GPIO_Port GPIOD
+#define SR_SHLDN_Pin LL_GPIO_PIN_2
+#define SR_SHLDN_GPIO_Port GPIOD
 #define LED_BLUE_Pin LL_GPIO_PIN_7
 #define LED_BLUE_GPIO_Port GPIOB
 #ifndef NVIC_PRIORITYGROUP_0

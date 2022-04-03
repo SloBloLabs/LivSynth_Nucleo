@@ -33,13 +33,13 @@ void ShiftRegister::init() {
 
 void ShiftRegister::process() {
     // SR Load
-    LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_2);
+    LL_GPIO_ResetOutputPin(SR_SHLDN_GPIO_Port, SR_SHLDN_Pin);
     // wait a bit
     //LL_mDelay(1);
     asm volatile ("nop");
     asm volatile ("nop");
     // SR Shift
-    LL_GPIO_SetOutputPin(GPIOD, LL_GPIO_PIN_2);
+    LL_GPIO_SetOutputPin(SR_SHLDN_GPIO_Port, SR_SHLDN_Pin);
 
     for(int i = 0; i < NUM_SHIFT_REGISTERS; ++i) {
 

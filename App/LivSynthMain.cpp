@@ -1,8 +1,10 @@
-#include "LivSynthMain.hpp"
+#include "LivSynthMain.h"
 #include "main.h"
 #include "System.h"
 #include "Adc.h"
 #include "ShiftRegister.h"
+#include "ButtonMatrix.h"
+#include "LEDDriver.h"
 #include <cstdio>
 #include <bitset>
 
@@ -18,13 +20,17 @@ static volatile float    _gateTime;
 static volatile float    _pitch;
 static volatile uint32_t _dacValue;
 
-static Adc adc;
+static            Adc           adc;
 static CCMRAM_BSS ShiftRegister shiftRegister;
+static CCMRAM_BSS ButtonMatrix  buttonMatrix(shiftRegister);
+static            LEDDriver     ledDriver;
 
 void appMain() {
     System::init();
     adc.init();
     shiftRegister.init();
+    ledDriver.init();
+    LL_mDelay(300);
 
     // Start DAC
     LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_1, 0x00);
@@ -68,11 +74,12 @@ void appMain() {
             setTempo();
             setPitch();
         }
+        ledDriver.process();
         
         // render debug log output
         if(curMillis - logMillis > 999) {
             logMillis = curMillis;
-            DBG("ADC0=%d, ADC3=%d, bpm=%.2f, pitch=%.2f, buttons=0x%02X", adc.channel(0), adc.channel(1), _bpm, _pitch, shiftRegister.read(0));
+            DBG("ADC0=%d, ADC1=%d, bpm=%.2f, pitch=%.2f, buttons=0x%02X", adc.channel(0), adc.channel(1), _bpm, _pitch, shiftRegister.read(0));
         }
     }
 }
@@ -97,7 +104,7 @@ void appBeat(uint32_t type) {
     switch(type) {
     case 0:
         ++_beat;
-        DBG("Beat %ld", _beat);
+        //DBG("Beat %ld", _beat);
         LL_GPIO_SetOutputPin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
         //LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_6);
         break;
@@ -121,6 +128,14 @@ void appBeat(uint32_t type) {
     } else {
         LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_6);
     }
+}
+
+void appLEDTxComplete() {
+    ledDriver.notifyTxComplete();
+}
+
+void appLEDTxError() {
+    ledDriver.notifyTxError();
 }
 
 void appADCCompleteRequest() {

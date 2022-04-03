@@ -21,13 +21,14 @@
 #include "adc.h"
 #include "dac.h"
 #include "dma.h"
+#include "i2c.h"
 #include "spi.h"
 #include "tim.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "LivSynthMain.hpp"
+#include "LivSynthMain.h"
 #include <stdio.h>
 /* USER CODE END Includes */
 
@@ -100,6 +101,7 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM2_Init();
   MX_SPI3_Init();
+  MX_I2C2_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
