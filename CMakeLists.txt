@@ -59,6 +59,7 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
     ${MCU_MODEL}
     USE_FULL_LL_DRIVER
     #USE_HAL_DRIVER
+    HSE_VALUE=8000000
     )
 
 # Add header directories (AFTER add_executable !!)

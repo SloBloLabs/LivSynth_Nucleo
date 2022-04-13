@@ -2,7 +2,7 @@
 
 BUILD_DIR := build
 BUILD_TYPE ?= Debug
-# BUILD_TYPE ?= Debug
+# BUILD_TYPE ?= Release
 
 all: build
 

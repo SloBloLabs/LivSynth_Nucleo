@@ -1,7 +1,7 @@
 #include <bitset>
 #include <cassert>
 #include <iostream>
- 
+
 int main()
 {
     // constructors:
@@ -45,4 +45,17 @@ int main()
     uint16_t y = (7372 % 0x1000) - 1; // 0x1000 = 4096
     std::cout << y << "\n";
 
+    uint32_t freq = 25000000;
+    uint32_t pllm = 4;
+    uint32_t plln = 180;
+    uint32_t pllp = 0;
+
+#define __LL_RCC_CALC_PLLCLK_FREQ(__INPUTFREQ__, __PLLM__, __PLLN__, __PLLP__) \
+    __INPUTFREQ__ / __PLLM__ * __PLLN__ / (((__PLLP__ >> 16U ) + 1U) * 2U)
+
+    uint32_t result1 = __LL_RCC_CALC_PLLCLK_FREQ(freq, pllm, plln, pllp);
+    std::cout << result1 << "\n";
+
+    uint32_t result2 = freq / pllm * plln / (((pllp >> 16U) + 1U) * 2U);
+    std::cout << result2 << "\n";
 }
