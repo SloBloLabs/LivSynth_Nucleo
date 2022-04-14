@@ -58,4 +58,12 @@ int main()
 
     uint32_t result2 = freq / pllm * plln / (((pllp >> 16U) + 1U) * 2U);
     std::cout << result2 << "\n";
+
+    uint8_t curLed = 0, lastLed = 0;
+    for(uint8_t i = 0; i < 50; ++i) {
+        std::cout << "off: " << unsigned(lastLed) << "| on: " << unsigned(curLed) << std::endl;
+        lastLed = curLed;
+        if(!(++curLed % 16)) curLed++;
+        if(curLed > 24) curLed = 0;
+    }
 }

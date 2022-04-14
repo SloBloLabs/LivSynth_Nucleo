@@ -1,5 +1,6 @@
 #include "main.h"
 #include <cstdint>
+#include <array>
 
 #define PCA9685_MODE1  0x00 // location for Mode1 register address
 #define PCA9685_MODE2  0x01 // location for Mode2 reigster address
@@ -21,6 +22,13 @@
 
 class LEDDriver {
 public:
+    enum LED_TYPE {
+        EMPTY,
+        COMMON_CATHODE, // LED, current sink
+        COMMON_ANODE    // e.g. TC002-N11AS2XT-RGB, current source
+    };
+    typedef std::array<LED_TYPE, NUM_LEDS_PER_CHIP> LED_TYPE_ARRAY;
+
     void init();
     void process();
     void notifyTxComplete();
@@ -58,6 +66,7 @@ private:
     uint8_t _transmissionBusy = 0;
     uint16_t _pwmLeds[NUM_PWM_LED_CHIPS][NUM_LEDS_PER_CHIP][2];
     uint8_t _chipAddress[NUM_PWM_LED_CHIPS] = {1, 2};
+    LED_TYPE_ARRAY _ledTypeArray[NUM_PWM_LED_CHIPS];
 
     // test mode
     bool _testMode = 0;

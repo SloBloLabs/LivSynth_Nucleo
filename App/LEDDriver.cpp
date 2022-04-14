@@ -8,14 +8,48 @@ void LEDDriver::init() {
     //LL_I2C_EnableIT_EVT(LED_I2C);
     //LL_I2C_EnableIT_ERR(LED_I2C);
 
-    for(uint32_t chip = 0; chip < NUM_PWM_LED_CHIPS; ++chip) {
-        for(uint32_t led = 0; led < NUM_LEDS_PER_CHIP; ++led) {
-            _pwmLeds[chip][led][LED_ON] = 0;
-            _pwmLeds[chip][led][LED_OFF] = 0;
-        }
-    }
+    _ledTypeArray[0] = {
+        COMMON_ANODE,
+        COMMON_ANODE,
+        COMMON_ANODE,
+        COMMON_ANODE,
+        COMMON_ANODE,
+        COMMON_ANODE,
+        COMMON_ANODE,
+        COMMON_ANODE,
+        COMMON_ANODE,
+        COMMON_ANODE,
+        COMMON_ANODE,
+        COMMON_ANODE,
+        COMMON_CATHODE,
+        COMMON_CATHODE,
+        COMMON_CATHODE,
+        EMPTY};
+    
+    _ledTypeArray[1] = {
+        COMMON_CATHODE,
+        COMMON_CATHODE,
+        COMMON_CATHODE,
+        COMMON_CATHODE,
+        COMMON_CATHODE,
+        COMMON_CATHODE,
+        COMMON_CATHODE,
+        COMMON_CATHODE,
+        COMMON_CATHODE,
+        EMPTY,
+        EMPTY,
+        EMPTY,
+        EMPTY,
+        EMPTY,
+        EMPTY,
+        EMPTY};
+    
 
     for(uint32_t chip = 0; chip < NUM_PWM_LED_CHIPS; ++chip) {
+        for(uint32_t led = 0; led < NUM_LEDS_PER_CHIP; ++led) {
+            _pwmLeds[chip][led][LED_ON] = _ledTypeArray[chip][led] == COMMON_CATHODE ? 0x1000 : 0;
+            _pwmLeds[chip][led][LED_OFF] = 0;
+        }
         resetChip(_chipAddress[chip]);
     }
 
@@ -56,8 +90,9 @@ void LEDDriver::process() {
                 _intensityPhase -= 2 * M_PI;
             }
         }
-
-        //_pwmLeds[0][0][LED_OFF] = 0x0FFF; // LED 1 RED
+/*
+        _pwmLeds[0][0][LED_ON] = 0xFFF; // LED 1 RED
+        _pwmLeds[0][0][LED_OFF] = 0x1000; // LED 1 RED
         //_pwmLeds[0][1][LED_OFF] = 0x0FFF; // LED 1 GREEN
         //_pwmLeds[0][2][LED_OFF] = 0x0FFF; // LED 1 BLUE
         //_pwmLeds[0][3][LED_OFF] = 0x0FFF; // LED 2 RED
@@ -69,19 +104,42 @@ void LEDDriver::process() {
         //_pwmLeds[0][9][LED_OFF] = 0x0FFF; // LED 4 RED
         //_pwmLeds[0][10][LED_OFF] = 0x0FFF; // LED 4 GREEN
         //_pwmLeds[0][11][LED_OFF] = 0x0FFF; // LED 4 BLUE
-        //_pwmLeds[0][12][LED_OFF] = 0x0FFF; // LED 4 RED
-        //_pwmLeds[0][13][LED_ON] = 0x0FFF; // LED 4 GREEN
-        //_pwmLeds[0][13][LED_OFF] = 0x00FF; // LED 4 GREEN
-        //_pwmLeds[0][14][LED_OFF] = 0x0FFF; // LED 4 BLUE
+        _pwmLeds[0][12][LED_ON] = 0x1000; // LED 5 RED
+        _pwmLeds[0][12][LED_OFF] = 0xFFF; // LED 5 RED
+        _pwmLeds[0][13][LED_ON] = 0x1FFF; // LED 5 GREEN
+        _pwmLeds[0][13][LED_OFF] = 0x0; // LED 5 GREEN
+        _pwmLeds[0][14][LED_ON] = 0x1FFF; // LED 5 BLUE
+        _pwmLeds[0][14][LED_OFF] = 0x0; // LED 5 BLUE
+        //_pwmLeds[0][15][LED_OFF] = 0x0FFF; // EMPTY
+
+        _pwmLeds[1][0][LED_ON] = 0x1FFF; // LED 6 RED
+        _pwmLeds[1][0][LED_OFF] = 0x0; // LED 6 RED
+        _pwmLeds[1][1][LED_ON] = 0x1FFF; // LED 6 GREEN
+        _pwmLeds[1][1][LED_OFF] = 0x0; // LED 6 GREEN
+        _pwmLeds[1][2][LED_ON] = 0x1FFF; // LED 6 BLUE
+        _pwmLeds[1][2][LED_OFF] = 0x0; // LED 6 BLUE
+
+        _pwmLeds[1][3][LED_ON] = 0x1FFF; // LED 7 RED
+        _pwmLeds[1][3][LED_OFF] = 0x0; // LED 7 RED
+        _pwmLeds[1][4][LED_ON] = 0x1FFF; // LED 7 GREEN
+        _pwmLeds[1][4][LED_OFF] = 0x0; // LED 7 GREEN
+        _pwmLeds[1][5][LED_ON] = 0x1FFF; // LED 7 BLUE
+        _pwmLeds[1][5][LED_OFF] = 0x0; // LED 7 BLUE
+
+        _pwmLeds[1][6][LED_ON] = 0x1FFF; // LED 8 RED
+        _pwmLeds[1][6][LED_OFF] = 0x0; // LED 8 RED
+        _pwmLeds[1][7][LED_ON] = 0x1FFF; // LED 8 GREEN
+        _pwmLeds[1][7][LED_OFF] = 0x0; // LED 8 GREEN
+        _pwmLeds[1][8][LED_ON] = 0x1FFF; // LED 8 BLUE
+        _pwmLeds[1][8][LED_OFF] = 0x0; // LED 8 BLUE
+*/
 
         ErrorStatus status;
-        status = writeRegisters(_chipAddress[0], PCA9685_LED0, reinterpret_cast<uint8_t*>(_pwmLeds), 15 << 2);
-        if(status == ERROR) {
-            DBG("error writing to register");
-        }
-        status = writeRegisters(_chipAddress[1], PCA9685_LED0, reinterpret_cast<uint8_t*>(_pwmLeds), 15 << 2);
-        if(status == ERROR) {
-            DBG("error writing to register");
+        for(uint32_t chip = 0; chip < NUM_PWM_LED_CHIPS; ++chip) {
+            status = writeRegisters(_chipAddress[chip], PCA9685_LED0, reinterpret_cast<uint8_t*>(_pwmLeds[chip]), 15 << 2);
+            if(status == ERROR) {
+                DBG("error writing to register");
+            }
         }
 
         LL_GPIO_ResetOutputPin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
@@ -96,11 +154,30 @@ void LEDDriver::notifyTxError() {
     DBG("LED Tx Error!");
 }
 
+//|---------------|---------------------------------|------------------------------------------|
+//|               |      RGB LED / CommonCathode    |     TC002-N11AS2XT-RGB / CommonAnode     |
+//|---------------|---------------------------------|------------------------------------------|
+//|               | LED_ON                | LED_OFF | LED_ON                         | LED_OFF |
+//|---------------|-----------------------|---------|--------------------------------|---------|
+//| LED full off  | 0x1XXX                | 0xX     | 0x0                            | 0x0     |
+//| LED full on   | 0x0                   | 0x0     | 0xX                            | 0x1XXX  | <- not implemented
+//| LED 1/4095    | 0x0                   | 0xFFF   | 0x0                            | 0x1     |
+//| LED 4094/4095 | 0x0                   | 0x1     | 0x0                            | 0xFFF   |
+
 void LEDDriver::setSingleLED(uint8_t led, uint16_t brightness) {
-    if(led < NUM_PWM_LED_CHIPS * 16) {
-        uint32_t chipNumber = led / 16;
-        led -= chipNumber * 16;
-        _pwmLeds[chipNumber][led][LED_ON] = brightness;
+    if(led < NUM_PWM_LED_CHIPS * NUM_LEDS_PER_CHIP) {
+        uint32_t chipNumber = led / NUM_LEDS_PER_CHIP;
+        led -= chipNumber * NUM_LEDS_PER_CHIP;
+        if(_ledTypeArray[chipNumber][led] == COMMON_CATHODE) {
+            if(brightness == 0) {
+                _pwmLeds[chipNumber][led][LED_ON]= 0x1000;
+            } else {
+                _pwmLeds[chipNumber][led][LED_ON]= 0x0;
+                _pwmLeds[chipNumber][led][LED_OFF]= 0x1000 - brightness;
+            }
+        } else {
+            _pwmLeds[chipNumber][led][LED_OFF]= brightness;
+        }
     }
 }
 
@@ -132,8 +209,8 @@ void LEDDriver::resetChip(uint32_t chipNumber) {
     }
     LL_mDelay(1);
 
-    // INVERT=1, OUTDRV=0, OUTNE=01
-    status = writeSingleRegister(chipNumber, PCA9685_MODE2, 0b00010001);
+    // INVERT=1, OUTDRV=0, OUTNE=01, Totem Pole to drive common cathode LEDs
+    status = writeSingleRegister(chipNumber, PCA9685_MODE2, 0b00010101);
     if(status == ERROR) {
         DBG("error writing to register");
     }

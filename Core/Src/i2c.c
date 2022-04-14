@@ -89,7 +89,7 @@ void MX_I2C2_Init(void)
   LL_I2C_DisableGeneralCall(I2C2);
   LL_I2C_EnableClockStretching(I2C2);
   I2C_InitStruct.PeripheralMode = LL_I2C_MODE_I2C;
-  I2C_InitStruct.ClockSpeed = 100000;
+  I2C_InitStruct.ClockSpeed = 400000;
   I2C_InitStruct.DutyCycle = LL_I2C_DUTYCYCLE_2;
   I2C_InitStruct.AnalogFilter = LL_I2C_ANALOGFILTER_ENABLE;
   I2C_InitStruct.DigitalFilter = 0;

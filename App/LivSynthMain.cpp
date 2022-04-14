@@ -30,7 +30,7 @@ void appMain() {
     adc.init();
     shiftRegister.init();
     ledDriver.init();
-    ledDriver.enableTestMode();
+    //ledDriver.enableTestMode();
     LL_mDelay(300);
 
     // Start DAC
@@ -57,6 +57,7 @@ void appMain() {
     _gateTime = .02; // 20ms
 
     startSequencer();
+    uint8_t curLed = 0, lastLed = 0;
 
     uint32_t curMillis
            , logMillis    = 0
@@ -67,15 +68,21 @@ void appMain() {
         curMillis = System::ticks();
         
         // update sequencer input and state
-        if(curMillis - updateMillis > 199) {
+        if(curMillis - updateMillis > 99) {
             updateMillis = curMillis;
+            
+            ledDriver.setSingleLED(lastLed, 0x0);
+            ledDriver.setSingleLED(curLed, 0xFFF);
+            lastLed = curLed;
+            if(!(++curLed % 15)) curLed++;
+            if(curLed > 24) curLed = 0;
+            ledDriver.process();
 
             std::bitset<8> myBitset;
             shiftRegister.process();
             setTempo();
             setPitch();
         }
-        ledDriver.process();
         
         // render debug log output
         if(curMillis - logMillis > 999) {
