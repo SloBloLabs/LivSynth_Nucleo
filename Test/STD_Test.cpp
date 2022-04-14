@@ -1,9 +1,9 @@
+#include "../App/Utils.h"
 #include <bitset>
 #include <cassert>
 #include <iostream>
 
-int main()
-{
+int main() {
     // constructors:
     constexpr std::bitset<4> b1;
     constexpr std::bitset<4> b2{0xA}; // == 0B1010
@@ -59,11 +59,15 @@ int main()
     uint32_t result2 = freq / pllm * plln / (((pllp >> 16U) + 1U) * 2U);
     std::cout << result2 << "\n";
 
-    uint8_t curLed = 0, lastLed = 0;
+    /*uint8_t curLed = 0, lastLed = 0;
     for(uint8_t i = 0; i < 50; ++i) {
         std::cout << "off: " << unsigned(lastLed) << "| on: " << unsigned(curLed) << std::endl;
         lastLed = curLed;
-        if(!(++curLed % 16)) curLed++;
+        if(!(++curLed % 15)) curLed++;
         if(curLed > 24) curLed = 0;
-    }
+    }*/
+
+    float H = 30., S = 1., V = 1., R, G, B;
+    HSVtoRGB(H, S, V, R, G, B);
+    std::cout << "R: " << R << ", G: " << G << ", B: " << B << std::endl;
 }
