@@ -1,6 +1,7 @@
 {
     "cmake.configureOnOpen": false,
     "files.associations": {
-        "cstdint": "cpp"
+        "cstdint": "cpp",
+        "random": "cpp"
     }
 }

@@ -1,6 +1,8 @@
 #include "LivSynthMain.h"
 #include "main.h"
 #include "System.h"
+#include "ClockTimer.h"
+#include "Clock.h"
 #include "Adc.h"
 #include "ShiftRegister.h"
 #include "ButtonMatrix.h"
@@ -20,6 +22,9 @@ static volatile float    _gateTime;
 static volatile float    _pitch;
 static volatile uint32_t _dacValue;
 
+static CCMRAM_BSS ClockTimer    clockTimer;
+// TODO: move to engine class
+static            Clock         clock(clockTimer);
 static            Adc           adc;
 static CCMRAM_BSS ShiftRegister shiftRegister;
 static CCMRAM_BSS ButtonMatrix  buttonMatrix(shiftRegister);
@@ -27,6 +32,7 @@ static            LEDDriver     ledDriver;
 
 void appMain() {
     System::init();
+    clockTimer.init();
     adc.init();
     shiftRegister.init();
     ledDriver.init();
@@ -150,6 +156,10 @@ void appBeat(uint32_t type) {
     }
 }
 
+void appClockTimer() {
+    clockTimer.notifyTimerUpdate();
+}
+
 void appLEDTxComplete() {
     ledDriver.notifyTxComplete();
 }
@@ -223,6 +233,7 @@ void startSequencer() {
     LL_TIM_EnableCounter(TIM2);
     // Generate initial update event (sequencer beats immediately upon start)
     //LL_TIM_GenerateEvent_UPDATE(TIM2);
+    clockTimer.enable();
     _sequencerState = 1;
     DBG("Sequencer started.");
 }

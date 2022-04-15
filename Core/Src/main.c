@@ -102,6 +102,7 @@ int main(void)
   MX_TIM2_Init();
   MX_SPI3_Init();
   MX_I2C2_Init();
+  MX_TIM5_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();

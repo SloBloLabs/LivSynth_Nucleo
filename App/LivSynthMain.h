@@ -7,6 +7,7 @@ extern "C" {
 void appMain(void);
 void appTick(void);
 void appBeat(uint32_t type);
+void appClockTimer();
 void appButtonPressed();
 void appADCCompleteRequest();
 void appSPICompleteRequest();
