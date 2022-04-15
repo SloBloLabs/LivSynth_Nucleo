@@ -58,7 +58,8 @@ void appMain() {
 
     startSequencer();
 
-    uint8_t curLed = 0, lastLed = 0;
+    // uint8_t curLed = 0, lastLed = 0;
+    float hue = 0.;
 
     uint32_t curMillis
            , logMillis    = 0
@@ -72,11 +73,16 @@ void appMain() {
         if(curMillis - updateMillis > 99) {
             updateMillis = curMillis;
             
-            ledDriver.setSingleLED(lastLed, 0x0);
-            ledDriver.setSingleLED(curLed, 0xFFF);
-            lastLed = curLed;
-            if(!(++curLed % 15)) curLed++;
-            if(curLed > 24) curLed = 0;
+            //ledDriver.setSingleLED(lastLed, 0x0);
+            //ledDriver.setSingleLED(curLed, 0xFFF);
+            //lastLed = curLed;
+            //if(!(++curLed % 15)) curLed++;
+            //if(curLed > 24) curLed = 0;
+            for(uint8_t led = 0; led < 8; ++led) {
+                ledDriver.setColourHSV(led, hue, 1., 1.);
+            }
+            hue += 10;
+            if(hue > 360.) hue -= 360.;
             ledDriver.process();
 
             std::bitset<8> myBitset;

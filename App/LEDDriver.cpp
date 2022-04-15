@@ -2,6 +2,7 @@
 #include "System.h"
 #include <cstdio>
 #include "math.h"
+#include "Utils.h"
 
 #define USE_DMA 1
 
@@ -114,6 +115,7 @@ void LEDDriver::process() {
     //_pwmLeds[1][8][LED_ON] = 0x1FFF; // LED 8 BLUE
     //_pwmLeds[1][8][LED_OFF] = 0x0; // LED 8 BLUE
 
+    LL_GPIO_SetOutputPin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
     if(USE_DMA) {
         _curChip = 0;
         _transmissionBusy = 1;
@@ -174,10 +176,17 @@ void LEDDriver::setSingleLED(uint8_t led, uint16_t brightness) {
     }
 }
 
-void LEDDriver::setColour(uint8_t startLed, float r, float g, float b) {
+void LEDDriver::setColourRGB(uint8_t colourLED, float r, float g, float b) {
+    uint8_t startLed = colourLED * 3 + floor(colourLED / 5);
     setSingleLED(startLed++, MAX_R_VALUE * r);
     setSingleLED(startLed++, MAX_G_VALUE * g);
     setSingleLED(startLed  , MAX_B_VALUE * b);
+}
+
+void LEDDriver::setColourHSV(uint8_t colourLED, float H, float S, float V) {
+    float r = 0., g = 0., b = 0.;
+    HSVtoRGB(H, S, V, r, g, b);
+    setColourRGB(colourLED, r, g, b);
 }
 
 void LEDDriver::resetChip(uint32_t chipNumber) {

@@ -38,7 +38,8 @@ public:
     void ledDisable();
     bool ledEnabled();
     void setSingleLED(uint8_t led, uint16_t brightness);
-    void setColour(uint8_t led, float r, float g, float b);
+    void setColourRGB(uint8_t colourLED, float r, float g, float b);
+    void setColourHSV(uint8_t colourLED, float H, float S, float V);
 
 private:
     void resetChip(uint32_t chipNumber);
