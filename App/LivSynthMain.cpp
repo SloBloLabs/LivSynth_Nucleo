@@ -57,6 +57,7 @@ void appMain() {
     _gateTime = .02; // 20ms
 
     startSequencer();
+
     uint8_t curLed = 0, lastLed = 0;
 
     uint32_t curMillis

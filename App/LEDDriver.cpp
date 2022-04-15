@@ -3,10 +3,22 @@
 #include <cstdio>
 #include "math.h"
 
+#define USE_DMA 1
+
+// http://stefanfrings.de/stm32/stm32f1.html#i2c
+// https://community.st.com/s/question/0D50X00009bLPuwSAG/busy-bus-after-i2c-reading
+
 void LEDDriver::init() {
-    //LL_I2C_Enable(LED_I2C); // -> already called in LL_I2C_Init
-    //LL_I2C_EnableIT_EVT(LED_I2C);
-    //LL_I2C_EnableIT_ERR(LED_I2C);
+    //LL_I2C_Enable(LED_I2C); // -> already called by LL_I2C_Init
+    
+    if(USE_DMA) {
+        //LL_I2C_EnableIT_EVT(LED_I2C);
+        //LL_I2C_EnableIT_ERR(LED_I2C);
+
+        LL_DMA_DisableStream(DMA1, LL_DMA_STREAM_7);
+    }
+
+    _chipAddressArray = {1, 2};
 
     _ledTypeArray[0] = {
         COMMON_ANODE,
@@ -44,114 +56,95 @@ void LEDDriver::init() {
         EMPTY,
         EMPTY};
     
+    _transmissionBusy = 0;
+    _curChip = 0;
 
     for(uint32_t chip = 0; chip < NUM_PWM_LED_CHIPS; ++chip) {
         for(uint32_t led = 0; led < NUM_LEDS_PER_CHIP; ++led) {
             _pwmLeds[chip][led][LED_ON] = _ledTypeArray[chip][led] == COMMON_CATHODE ? 0x1000 : 0;
             _pwmLeds[chip][led][LED_OFF] = 0;
         }
-        resetChip(_chipAddress[chip]);
+        resetChip(chip);
     }
 
-    disableTestMode();
     ledEnable();
-
-    _updateMillis = System::ticks();
 }
 
 void LEDDriver::process() {
-    uint32_t curMillis = System::ticks();
-    if((curMillis - _updateMillis) > 49) {
-        // http://stefanfrings.de/stm32/stm32f1.html#i2c
-        // https://community.st.com/s/question/0D50X00009bLPuwSAG/busy-bus-after-i2c-reading
-        _updateMillis = curMillis;
+    if(_transmissionBusy) {
+        return;
+    }
 
-        LL_GPIO_SetOutputPin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+    //_pwmLeds[0][0][LED_ON] = 0xFFF; // LED 1 RED
+    //_pwmLeds[0][0][LED_OFF] = 0x1000; // LED 1 RED
+    //_pwmLeds[0][1][LED_OFF] = 0x0FFF; // LED 1 GREEN
+    //_pwmLeds[0][2][LED_OFF] = 0x0FFF; // LED 1 BLUE
+    //_pwmLeds[0][3][LED_OFF] = 0x0FFF; // LED 2 RED
+    //_pwmLeds[0][4][LED_OFF] = 0x0FFF; // LED 2 GREEN
+    //_pwmLeds[0][5][LED_OFF] = 0x0FFF; // LED 2 BLUE
+    //_pwmLeds[0][6][LED_OFF] = 0x0FFF; // LED 3 RED
+    //_pwmLeds[0][7][LED_OFF] = 0x0FFF; // LED 3 GREEN
+    //_pwmLeds[0][8][LED_OFF] = 0x0FFF; // LED 3 BLUE
+    //_pwmLeds[0][9][LED_OFF] = 0x0FFF; // LED 4 RED
+    //_pwmLeds[0][10][LED_OFF] = 0x0FFF; // LED 4 GREEN
+    //_pwmLeds[0][11][LED_OFF] = 0x0FFF; // LED 4 BLUE
+    //_pwmLeds[0][12][LED_ON] = 0x1000; // LED 5 RED
+    //_pwmLeds[0][12][LED_OFF] = 0xFFF; // LED 5 RED
+    //_pwmLeds[0][13][LED_ON] = 0x1FFF; // LED 5 GREEN
+    //_pwmLeds[0][13][LED_OFF] = 0x0; // LED 5 GREEN
+    //_pwmLeds[0][14][LED_ON] = 0x1FFF; // LED 5 BLUE
+    //_pwmLeds[0][14][LED_OFF] = 0x0; // LED 5 BLUE
+    //_pwmLeds[0][15][LED_OFF] = 0x0FFF; // EMPTY
+    //_pwmLeds[1][0][LED_ON] = 0x1FFF; // LED 6 RED
+    //_pwmLeds[1][0][LED_OFF] = 0x0; // LED 6 RED
+    //_pwmLeds[1][1][LED_ON] = 0x1FFF; // LED 6 GREEN
+    //_pwmLeds[1][1][LED_OFF] = 0x0; // LED 6 GREEN
+    //_pwmLeds[1][2][LED_ON] = 0x1FFF; // LED 6 BLUE
+    //_pwmLeds[1][2][LED_OFF] = 0x0; // LED 6 BLUE
+    //_pwmLeds[1][3][LED_ON] = 0x1FFF; // LED 7 RED
+    //_pwmLeds[1][3][LED_OFF] = 0x0; // LED 7 RED
+    //_pwmLeds[1][4][LED_ON] = 0x1FFF; // LED 7 GREEN
+    //_pwmLeds[1][4][LED_OFF] = 0x0; // LED 7 GREEN
+    //_pwmLeds[1][5][LED_ON] = 0x1FFF; // LED 7 BLUE
+    //_pwmLeds[1][5][LED_OFF] = 0x0; // LED 7 BLUE
+    //_pwmLeds[1][6][LED_ON] = 0x1FFF; // LED 8 RED
+    //_pwmLeds[1][6][LED_OFF] = 0x0; // LED 8 RED
+    //_pwmLeds[1][7][LED_ON] = 0x1FFF; // LED 8 GREEN
+    //_pwmLeds[1][7][LED_OFF] = 0x0; // LED 8 GREEN
+    //_pwmLeds[1][8][LED_ON] = 0x1FFF; // LED 8 BLUE
+    //_pwmLeds[1][8][LED_OFF] = 0x0; // LED 8 BLUE
 
-        if(_testMode) {
-            _amplitude = 1.0;//(sin(_intensityPhase) + 1) / 2;
-            
-            _r = (_amplitude * sin(_runPhase) + _amplitude) / 2.f;
-            _g = (_amplitude * sin(_runPhase + 2 * M_PI / 3) + _amplitude) / 2.f;
-            _b = (_amplitude * sin(_runPhase + 4 * M_PI / 3) + _amplitude) / 2.f;
-    
-            setColour(0, _r, _g, _b);
-            setColour(3, _g, _b, _r);
-            setColour(6, _b, _r, _g);
-            setColour(9, _r, _b, _g);
-    
-            _runPhase += .2;
-            if (_runPhase > 2 * M_PI) {
-                _runPhase -= 2 * M_PI;
-            }
-    
-            _intensityPhase += .01;
-            if (_intensityPhase > 2 * M_PI) {
-                _intensityPhase -= 2 * M_PI;
-            }
-        }
-/*
-        _pwmLeds[0][0][LED_ON] = 0xFFF; // LED 1 RED
-        _pwmLeds[0][0][LED_OFF] = 0x1000; // LED 1 RED
-        //_pwmLeds[0][1][LED_OFF] = 0x0FFF; // LED 1 GREEN
-        //_pwmLeds[0][2][LED_OFF] = 0x0FFF; // LED 1 BLUE
-        //_pwmLeds[0][3][LED_OFF] = 0x0FFF; // LED 2 RED
-        //_pwmLeds[0][4][LED_OFF] = 0x0FFF; // LED 2 GREEN
-        //_pwmLeds[0][5][LED_OFF] = 0x0FFF; // LED 2 BLUE
-        //_pwmLeds[0][6][LED_OFF] = 0x0FFF; // LED 3 RED
-        //_pwmLeds[0][7][LED_OFF] = 0x0FFF; // LED 3 GREEN
-        //_pwmLeds[0][8][LED_OFF] = 0x0FFF; // LED 3 BLUE
-        //_pwmLeds[0][9][LED_OFF] = 0x0FFF; // LED 4 RED
-        //_pwmLeds[0][10][LED_OFF] = 0x0FFF; // LED 4 GREEN
-        //_pwmLeds[0][11][LED_OFF] = 0x0FFF; // LED 4 BLUE
-        _pwmLeds[0][12][LED_ON] = 0x1000; // LED 5 RED
-        _pwmLeds[0][12][LED_OFF] = 0xFFF; // LED 5 RED
-        _pwmLeds[0][13][LED_ON] = 0x1FFF; // LED 5 GREEN
-        _pwmLeds[0][13][LED_OFF] = 0x0; // LED 5 GREEN
-        _pwmLeds[0][14][LED_ON] = 0x1FFF; // LED 5 BLUE
-        _pwmLeds[0][14][LED_OFF] = 0x0; // LED 5 BLUE
-        //_pwmLeds[0][15][LED_OFF] = 0x0FFF; // EMPTY
-
-        _pwmLeds[1][0][LED_ON] = 0x1FFF; // LED 6 RED
-        _pwmLeds[1][0][LED_OFF] = 0x0; // LED 6 RED
-        _pwmLeds[1][1][LED_ON] = 0x1FFF; // LED 6 GREEN
-        _pwmLeds[1][1][LED_OFF] = 0x0; // LED 6 GREEN
-        _pwmLeds[1][2][LED_ON] = 0x1FFF; // LED 6 BLUE
-        _pwmLeds[1][2][LED_OFF] = 0x0; // LED 6 BLUE
-
-        _pwmLeds[1][3][LED_ON] = 0x1FFF; // LED 7 RED
-        _pwmLeds[1][3][LED_OFF] = 0x0; // LED 7 RED
-        _pwmLeds[1][4][LED_ON] = 0x1FFF; // LED 7 GREEN
-        _pwmLeds[1][4][LED_OFF] = 0x0; // LED 7 GREEN
-        _pwmLeds[1][5][LED_ON] = 0x1FFF; // LED 7 BLUE
-        _pwmLeds[1][5][LED_OFF] = 0x0; // LED 7 BLUE
-
-        _pwmLeds[1][6][LED_ON] = 0x1FFF; // LED 8 RED
-        _pwmLeds[1][6][LED_OFF] = 0x0; // LED 8 RED
-        _pwmLeds[1][7][LED_ON] = 0x1FFF; // LED 8 GREEN
-        _pwmLeds[1][7][LED_OFF] = 0x0; // LED 8 GREEN
-        _pwmLeds[1][8][LED_ON] = 0x1FFF; // LED 8 BLUE
-        _pwmLeds[1][8][LED_OFF] = 0x0; // LED 8 BLUE
-*/
-
+    if(USE_DMA) {
+        _curChip = 0;
+        _transmissionBusy = 1;
+        writeRegistersDMA(_curChip, PCA9685_LED0, reinterpret_cast<uint8_t*>(_pwmLeds[_curChip]), 15 << 2);
+    } else {
         ErrorStatus status;
-        for(uint32_t chip = 0; chip < NUM_PWM_LED_CHIPS; ++chip) {
-            status = writeRegisters(_chipAddress[chip], PCA9685_LED0, reinterpret_cast<uint8_t*>(_pwmLeds[chip]), 15 << 2);
+        for(_curChip = 0; _curChip < NUM_PWM_LED_CHIPS; ++_curChip) {
+            status = writeRegisters(_curChip, PCA9685_LED0, reinterpret_cast<uint8_t*>(_pwmLeds[_curChip]), 15 << 2);
             if(status == ERROR) {
                 DBG("error writing to register");
             }
         }
-
         LL_GPIO_ResetOutputPin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
     }
 }
 
 void LEDDriver::notifyTxComplete() {
-    DBG("LED Tx Complete!");
+    // DBG("LED Tx Complete!");
+    stopTransfer();
+    LL_DMA_DisableStream(DMA1, LL_DMA_STREAM_7);
+    if(++_curChip < NUM_PWM_LED_CHIPS) {
+        writeRegistersDMA(_curChip, PCA9685_LED0, reinterpret_cast<uint8_t*>(_pwmLeds[_curChip]), 15 << 2);
+    } else {
+        _transmissionBusy = 0;
+        LL_GPIO_ResetOutputPin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+    }
 }
 
 void LEDDriver::notifyTxError() {
     DBG("LED Tx Error!");
+    NVIC_DisableIRQ(DMA1_Stream7_IRQn);
 }
 
 //|---------------|---------------------------------|------------------------------------------|
@@ -223,10 +216,10 @@ ErrorStatus LEDDriver::writeSingleRegister(uint8_t chipNumber, uint8_t registerA
 
 ErrorStatus LEDDriver::writeRegisters(uint8_t chipNumber, uint8_t startRegister, uint8_t* registerValues, uint32_t count) {
     ErrorStatus ret = SUCCESS, status;
-
+    
     status = startTransfer();
     if(status == SUCCESS) {
-        status = sendAddress(chipNumber);
+        status = sendAddress(_chipAddressArray[chipNumber]);
         if(status == ERROR) {
             ret = status;
         }
@@ -247,6 +240,55 @@ ErrorStatus LEDDriver::writeRegisters(uint8_t chipNumber, uint8_t startRegister,
     }
 
     stopTransfer();
+
+    return ret;
+}
+
+ErrorStatus LEDDriver::writeRegistersDMA(uint8_t chipNumber, uint8_t startRegister, uint8_t* registerValues, uint32_t count) {
+    ErrorStatus ret = SUCCESS, status;
+
+    status = startTransfer();
+    if(status == SUCCESS) {
+        status = sendAddress(_chipAddressArray[chipNumber]);
+        if(status == ERROR) {
+            ret = status;
+        }
+    
+        status = sendData(startRegister);
+        if(status == ERROR) {
+            ret = status;
+        }
+    
+        uint32_t ticks = System::ticks();
+        while(!LL_I2C_IsActiveFlag_TXE(LED_I2C) && (System::ticks() - ticks) < 2) {
+            if(LL_I2C_IsActiveFlag_AF(LED_I2C)) {
+                ret = ERROR;
+            }
+        }
+
+        if(ret == ERROR || !LL_I2C_IsActiveFlag_TXE(LED_I2C)) {
+            DBG("TX buffer not empty, aborting");
+            return ERROR;
+        }
+
+        LL_DMA_ConfigAddresses(
+            DMA1,
+            LL_DMA_STREAM_7,
+            (uint32_t)&_pwmLeds[chipNumber],
+            (uint32_t)LL_I2C_DMA_GetRegAddr(LED_I2C),
+            LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
+        LL_DMA_SetDataLength(DMA1, LL_DMA_STREAM_7, count);
+        LL_DMA_EnableIT_TC(DMA1, LL_DMA_STREAM_7);
+        LL_DMA_EnableIT_TE(DMA1, LL_DMA_STREAM_7);
+        LL_DMA_EnableStream(DMA1, LL_DMA_STREAM_7);
+
+        LL_I2C_EnableDMAReq_TX(LED_I2C);
+
+    } else {
+        ret = status;
+    }
+
+    //stopTransfer();
 
     return ret;
 }
@@ -300,7 +342,7 @@ ErrorStatus LEDDriver::stopTransfer() {
 }
 
 ErrorStatus LEDDriver::sendAddress(uint8_t chipNumber) {
-    //DBG("send address");
+    //DBG("send address %d", chipNumber);
     ErrorStatus ret = SUCCESS;
     uint8_t address = 0b10000000 | (chipNumber << 1);
     LL_I2C_TransmitData8(LED_I2C, address);

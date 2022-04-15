@@ -73,12 +73,6 @@ void MX_I2C2_Init(void)
 
   LL_DMA_DisableFifoMode(DMA1, LL_DMA_STREAM_7);
 
-  /* I2C2 interrupt Init */
-  NVIC_SetPriority(I2C2_EV_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
-  NVIC_EnableIRQ(I2C2_EV_IRQn);
-  NVIC_SetPriority(I2C2_ER_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
-  NVIC_EnableIRQ(I2C2_ER_IRQn);
-
   /* USER CODE BEGIN I2C2_Init 1 */
 
   /* USER CODE END I2C2_Init 1 */

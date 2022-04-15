@@ -27,6 +27,7 @@ public:
         COMMON_CATHODE, // LED, current sink
         COMMON_ANODE    // e.g. TC002-N11AS2XT-RGB, current source
     };
+    typedef std::array<uint8_t, NUM_PWM_LED_CHIPS> CHIP_ADDRESS_ARRAY;
     typedef std::array<LED_TYPE, NUM_LEDS_PER_CHIP> LED_TYPE_ARRAY;
 
     void init();
@@ -38,13 +39,12 @@ public:
     bool ledEnabled();
     void setSingleLED(uint8_t led, uint16_t brightness);
     void setColour(uint8_t led, float r, float g, float b);
-    void inline enableTestMode() { _testMode = true; };
-    void inline disableTestMode() { _testMode = false; };
 
 private:
     void resetChip(uint32_t chipNumber);
     ErrorStatus writeSingleRegister(uint8_t chipNumber, uint8_t registerAddress, uint8_t registerValue);
     ErrorStatus writeRegisters(uint8_t chipNumber, uint8_t startRegister, uint8_t* registerValues, uint32_t count);
+    ErrorStatus writeRegistersDMA(uint8_t chipNumber, uint8_t startRegister, uint8_t* registerValues, uint32_t count);
     void  checkStatus();
     ErrorStatus startTransfer();
     ErrorStatus stopTransfer();
@@ -62,16 +62,10 @@ private:
     uint8_t get_red_led_element_id(uint8_t rgb_led_id);
     uint8_t get_chip_num(uint8_t rgb_led_id);
 
-    uint32_t _updateMillis;
-    uint8_t _transmissionBusy = 0;
+    uint8_t _transmissionBusy;
+    uint8_t _curChip;
     uint16_t _pwmLeds[NUM_PWM_LED_CHIPS][NUM_LEDS_PER_CHIP][2];
-    uint8_t _chipAddress[NUM_PWM_LED_CHIPS] = {1, 2};
+    CHIP_ADDRESS_ARRAY _chipAddressArray;
     LED_TYPE_ARRAY _ledTypeArray[NUM_PWM_LED_CHIPS];
 
-    // test mode
-    bool _testMode = 0;
-    float _runPhase = 0;
-    float _intensityPhase = 0;
-    float _amplitude = 0;
-    float _r, _g, _b;
 };
