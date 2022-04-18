@@ -78,6 +78,8 @@ void Error_Handler(void);
 #define USER_BUTTON_Pin LL_GPIO_PIN_13
 #define USER_BUTTON_GPIO_Port GPIOC
 #define USER_BUTTON_EXTI_IRQn EXTI15_10_IRQn
+#define GATE_Pin LL_GPIO_PIN_6
+#define GATE_GPIO_Port GPIOA
 #define LED_GREEN_Pin LL_GPIO_PIN_0
 #define LED_GREEN_GPIO_Port GPIOB
 #define LED_RED_Pin LL_GPIO_PIN_14

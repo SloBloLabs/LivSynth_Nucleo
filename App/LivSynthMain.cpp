@@ -5,6 +5,7 @@
 #include "Clock.h"
 #include "Adc.h"
 #include "DacInternal.h"
+#include "Dio.h"
 #include "ShiftRegister.h"
 #include "ButtonMatrix.h"
 #include "LEDDriver.h"
@@ -28,6 +29,7 @@ static CCMRAM_BSS ClockTimer    clockTimer;
 static CCMRAM_BSS Clock         clock(clockTimer);
 static            Adc           adc;
 static CCMRAM_BSS DacInternal   dac;
+static CCMRAM_BSS Dio           dio;
 static CCMRAM_BSS ShiftRegister shiftRegister;
 static CCMRAM_BSS ButtonMatrix  buttonMatrix(shiftRegister);
 static            LEDDriver     ledDriver;
@@ -37,6 +39,7 @@ void appMain() {
     clockTimer.init();
     adc.init();
     dac.init();
+    dio.init();
     shiftRegister.init();
     ledDriver.init();
 
@@ -93,6 +96,7 @@ void appMain() {
             if(curLed > 24) curLed = 0;
             ledDriver.process();
             dac.setValue(hue / 360. * 0xFFF);
+            dio.setGate(hue < 180.);
 
             std::bitset<8> myBitset;
             shiftRegister.process();
