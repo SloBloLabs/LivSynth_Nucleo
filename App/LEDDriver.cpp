@@ -68,6 +68,7 @@ void LEDDriver::init() {
         resetChip(chip);
     }
 
+    // Tie to ground! Disabling brings common cathode LEDs full on.
     ledEnable();
 }
 

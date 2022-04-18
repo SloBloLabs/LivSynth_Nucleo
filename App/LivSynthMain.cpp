@@ -4,6 +4,7 @@
 #include "ClockTimer.h"
 #include "Clock.h"
 #include "Adc.h"
+#include "DacInternal.h"
 #include "ShiftRegister.h"
 #include "ButtonMatrix.h"
 #include "LEDDriver.h"
@@ -12,7 +13,7 @@
 
 #define CCMRAM_BSS __attribute__((section(".ccmram")))
 
-#define DAC_DELAY_VOLTAGE_SETTLING_CYCLES 29
+//#define DAC_DELAY_VOLTAGE_SETTLING_CYCLES 29
 
 static volatile uint32_t _beat;
 static volatile float    _bpm;
@@ -24,8 +25,9 @@ static volatile uint32_t _dacValue;
 
 static CCMRAM_BSS ClockTimer    clockTimer;
 // TODO: move to engine class
-static            Clock         clock(clockTimer);
+static CCMRAM_BSS Clock         clock(clockTimer);
 static            Adc           adc;
+static CCMRAM_BSS DacInternal   dac;
 static CCMRAM_BSS ShiftRegister shiftRegister;
 static CCMRAM_BSS ButtonMatrix  buttonMatrix(shiftRegister);
 static            LEDDriver     ledDriver;
@@ -34,19 +36,18 @@ void appMain() {
     System::init();
     clockTimer.init();
     adc.init();
+    dac.init();
     shiftRegister.init();
     ledDriver.init();
-    //ledDriver.enableTestMode();
-    LL_mDelay(300);
 
     // Start DAC
-    LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_1, 0x00);
-    LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_1);
-    volatile uint32_t wait_loop_index = ((LL_DAC_DELAY_STARTUP_VOLTAGE_SETTLING_US * (SystemCoreClock / (100000 * 2))) / 10);
-    while(wait_loop_index != 0) {
-        wait_loop_index--;
-    }
-    LL_DAC_EnableTrigger(DAC1, LL_DAC_CHANNEL_1);
+    //LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_1, 0x00);
+    //LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_1);
+    //volatile uint32_t wait_loop_index = ((LL_DAC_DELAY_STARTUP_VOLTAGE_SETTLING_US * (SystemCoreClock / (100000 * 2))) / 10);
+    //while(wait_loop_index != 0) {
+    //    wait_loop_index--;
+    //}
+    //LL_DAC_EnableTrigger(DAC1, LL_DAC_CHANNEL_1);
 
     stopSequencer();
 
@@ -64,7 +65,7 @@ void appMain() {
 
     startSequencer();
 
-    // uint8_t curLed = 0, lastLed = 0;
+    uint8_t curLed = 0, lastLed = 0;
     float hue = 0.;
 
     uint32_t curMillis
@@ -79,17 +80,19 @@ void appMain() {
         if(curMillis - updateMillis > 99) {
             updateMillis = curMillis;
             
-            //ledDriver.setSingleLED(lastLed, 0x0);
-            //ledDriver.setSingleLED(curLed, 0xFFF);
-            //lastLed = curLed;
-            //if(!(++curLed % 15)) curLed++;
-            //if(curLed > 24) curLed = 0;
             for(uint8_t led = 0; led < 8; ++led) {
                 ledDriver.setColourHSV(led, hue, 1., 1.);
             }
             hue += 10;
             if(hue > 360.) hue -= 360.;
+
+            ledDriver.setSingleLED(lastLed, 0x0);
+            ledDriver.setSingleLED(curLed, 0xFFF);
+            lastLed = curLed;
+            if(!(++curLed % 15)) curLed++;
+            if(curLed > 24) curLed = 0;
             ledDriver.process();
+            dac.setValue(hue / 360. * 0xFFF);
 
             std::bitset<8> myBitset;
             shiftRegister.process();
@@ -143,12 +146,12 @@ void appBeat(uint32_t type) {
     }
 
     _dacValue = (_beat % 2) == 0 ? 0x00 : 0xFFF;
-    LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_1, _dacValue);
-    LL_DAC_TrigSWConversion(DAC1, LL_DAC_CHANNEL_1);
-    volatile uint32_t wait_loop_index = DAC_DELAY_VOLTAGE_SETTLING_CYCLES;
-    while(wait_loop_index != 0) {
-        wait_loop_index--;
-    }
+    //LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_1, _dacValue);
+    //LL_DAC_TrigSWConversion(DAC1, LL_DAC_CHANNEL_1);
+    //volatile uint32_t wait_loop_index = DAC_DELAY_VOLTAGE_SETTLING_CYCLES;
+    //while(wait_loop_index != 0) {
+    //    wait_loop_index--;
+    //}
     if(_dacValue) {
         LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_6);
     } else {
