@@ -20,12 +20,17 @@ void ClockTimer::disable() {
     LL_TIM_DisableCounter(CLOCK_TIMER);
 }
 
+bool ClockTimer::isRunning() {
+    return LL_TIM_IsEnabledCounter(CLOCK_TIMER);
+}
+
 void ClockTimer::setPeriod(uint32_t us) {
     _period = us;
     LL_TIM_SetAutoReload(CLOCK_TIMER, _period - 1);
     LL_TIM_SetCounter(CLOCK_TIMER, std::min(LL_TIM_GetCounter(CLOCK_TIMER), _period - 1));
 }
 
+// Called from TIM update ISR
 void ClockTimer::notifyTimerUpdate() {
     // notify observers
     notifyObservers();

@@ -3,6 +3,9 @@
 #include <cstdint>
 #include <list>
 
+// https://refactoring.guru/design-patterns/observer/cpp/example
+// https://interrupt.memfault.com/blog/cortex-m-fault-debug
+
 class IClockTimerObserver {
 public:
     virtual ~IClockTimerObserver() {}
@@ -23,6 +26,7 @@ public:
 
     void enable();
     void disable();
+    bool isRunning();
 
     inline uint32_t period() const { return _period; }
     void setPeriod(uint32_t us);

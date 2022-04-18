@@ -18,16 +18,23 @@ void Clock::init() {
 }
 
 void Clock::masterStart() {
-    
+    setRunState(RunState::MasterRunning);
+    resetTicks();
+
+    _timer.disable();
+    setupMasterTimer();
+    _timer.enable();
 }
 
 void Clock::masterStop() {
-
+    setRunState(RunState::Idle);
+    _timer.disable();
 }
 
 void Clock::resetTicks() {
     _tick = 0;
     _tickProcessed = 0;
+    _output.nextTick = 0;
 }
 
 void Clock::setMasterBpm(float bpm) {
@@ -43,9 +50,9 @@ void Clock::outputConfigure(int divisor, int pulse) {
 void Clock::outputConfigureSwing(int swing) {
     _output.swing = swing;
 }
-
+ // called from ClockTimer ISR
 void Clock::onClockTimerTick() {
-    DBG("Clock Timer Tick");
+    //DBG("Clock Timer Tick");
     switch(_runState) {
     case RunState::MasterRunning: {
         outputTick(_tick);
@@ -64,6 +71,7 @@ void Clock::setupMasterTimer() {
     _timer.setPeriod(us);
 }
 
+// called from onClockTimerTick
 void Clock::outputTick(uint32_t tick) {
 
     auto applySwing = [this] (uint32_t tick) {
@@ -75,7 +83,6 @@ void Clock::outputTick(uint32_t tick) {
         uint32_t clockDuration = std::max(uint32_t(1), uint32_t(_masterBpm * _ppqn * _output.pulse / (60 * 1000)));
 
         _output.nextTickOn = applySwing(_output.nextTick);
-        //TODO: apply swing?
         _output.nextTickOff = std::min(_output.nextTickOn + clockDuration, applySwing(_output.nextTick + divisor) - 1);
         
         _output.nextTick += divisor;

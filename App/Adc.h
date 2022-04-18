@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdint>
 
 #define NUM_ADC_CHANNELS 2

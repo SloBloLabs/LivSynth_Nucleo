@@ -4,8 +4,9 @@
 #define DAC_DELAY_VOLTAGE_SETTLING_CYCLES 29
 
 void DacInternal::init() {
+    _value = 0x0;
     // Start DAC
-    LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_2, 0x00);
+    LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_2, _value);
     LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_2);
     volatile uint32_t wait_loop_index = ((LL_DAC_DELAY_STARTUP_VOLTAGE_SETTLING_US * (SystemCoreClock / (100000 * 2))) / 10);
     while(wait_loop_index != 0) {
@@ -15,7 +16,8 @@ void DacInternal::init() {
 }
 
 void DacInternal::setValue(uint32_t value) {
-    LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_2, value);
+    _value = value;
+    LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_2, _value);
     LL_DAC_TrigSWConversion(DAC1, LL_DAC_CHANNEL_2);
     volatile uint32_t wait_loop_index = DAC_DELAY_VOLTAGE_SETTLING_CYCLES;
     while(wait_loop_index != 0) {

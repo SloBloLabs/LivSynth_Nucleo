@@ -9,6 +9,7 @@
 #include "ShiftRegister.h"
 #include "ButtonMatrix.h"
 #include "LEDDriver.h"
+#include "Engine.h"
 #include <cstdio>
 #include <bitset>
 
@@ -25,14 +26,13 @@ static volatile float    _pitch;
 static volatile uint32_t _dacValue;
 
 static CCMRAM_BSS ClockTimer    clockTimer;
-// TODO: move to engine class
-static CCMRAM_BSS Clock         clock(clockTimer);
 static            Adc           adc;
 static CCMRAM_BSS DacInternal   dac;
 static CCMRAM_BSS Dio           dio;
 static CCMRAM_BSS ShiftRegister shiftRegister;
 static CCMRAM_BSS ButtonMatrix  buttonMatrix(shiftRegister);
 static            LEDDriver     ledDriver;
+static CCMRAM_BSS Engine        engine(clockTimer, adc, dac, dio);
 
 void appMain() {
     System::init();
@@ -42,15 +42,7 @@ void appMain() {
     dio.init();
     shiftRegister.init();
     ledDriver.init();
-
-    // Start DAC
-    //LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_1, 0x00);
-    //LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_1);
-    //volatile uint32_t wait_loop_index = ((LL_DAC_DELAY_STARTUP_VOLTAGE_SETTLING_US * (SystemCoreClock / (100000 * 2))) / 10);
-    //while(wait_loop_index != 0) {
-    //    wait_loop_index--;
-    //}
-    //LL_DAC_EnableTrigger(DAC1, LL_DAC_CHANNEL_1);
+    engine.init();
 
     stopSequencer();
 
@@ -67,6 +59,9 @@ void appMain() {
     _gateTime = .02; // 20ms
 
     startSequencer();
+
+    engine.update();
+    engine.clockStart();
 
     uint8_t curLed = 0, lastLed = 0;
     float hue = 0.;
@@ -96,7 +91,6 @@ void appMain() {
             if(curLed > 24) curLed = 0;
             ledDriver.process();
             dac.setValue(hue / 360. * 0xFFF);
-            dio.setGate(hue < 180.);
 
             std::bitset<8> myBitset;
             shiftRegister.process();
@@ -150,12 +144,6 @@ void appBeat(uint32_t type) {
     }
 
     _dacValue = (_beat % 2) == 0 ? 0x00 : 0xFFF;
-    //LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_1, _dacValue);
-    //LL_DAC_TrigSWConversion(DAC1, LL_DAC_CHANNEL_1);
-    //volatile uint32_t wait_loop_index = DAC_DELAY_VOLTAGE_SETTLING_CYCLES;
-    //while(wait_loop_index != 0) {
-    //    wait_loop_index--;
-    //}
     if(_dacValue) {
         LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_6);
     } else {

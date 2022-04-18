@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ClockTimer.h"
 #include <list>
 
