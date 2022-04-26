@@ -1,7 +1,62 @@
-#include "../App/Utils.h"
+#define CONFIG_PPQN 192
+
+#include "../App/Utils/Utils.h"
+#include "../App/Utils/Groove.h"
 #include <bitset>
 #include <cassert>
 #include <iostream>
+
+void bpmPeriodError() {
+    uint32_t naivePeriod;
+    uint32_t roundedPeriod;
+    for(float bpm = 20; bpm <= 200.f; bpm += .1f) {
+        naivePeriod = (60 * 1000000) / (bpm * 192);
+        roundedPeriod = std::round((60 * 1000000) / (bpm * 192));
+        std::cout << "bpm: " << bpm << ", naive period: " << naivePeriod << ", rounded period: " << roundedPeriod;
+        if(naivePeriod != roundedPeriod) std::cout << " -> error!";
+        std::cout << std::endl;
+    }
+}
+
+uint32_t nextTick, nextTickOn, nextTickOff;
+
+void outputTick(uint32_t tick) {
+
+    auto applySwing = [&] (uint32_t tick) {
+        int swing = 75;
+        return swing != 0 ? Groove::applySwing(tick, swing) : tick;
+    };
+    
+    if(tick == nextTick) {
+        uint32_t divisor = 48;
+        // "target 1ms, at least one tick"
+        uint32_t clockDuration = std::max(uint32_t(1), uint32_t(120.f * 192.f * 1.f / (60 * 1000)));
+        //std::cout << "ClockDuration: " << clockDuration << std::endl;
+
+        nextTickOn = applySwing(tick);
+        nextTickOff = std::min(nextTickOn + clockDuration, applySwing(nextTick + divisor) - 1);
+
+        nextTick += divisor;
+
+        std::cout << "tick: " << tick << ", nextTick: " << nextTick << ", nextTickOn: " << nextTickOn << ", nextTickOff: " << nextTickOff << std::endl;
+    }
+
+    if(tick == nextTickOn) {
+        std::cout << "set clock at " << tick << std::endl;
+    }
+
+    if(tick == nextTickOff) {
+        std::cout << "reset clock at " << tick << std::endl;
+    }
+}
+
+void testHSV2RGB() {
+    for(float H = 0.f; H < 360.f; H += 10.f) {
+        float S = 1., V = 1., R, G, B;
+        HSVtoRGB(H, S, V, R, G, B);
+        std::cout << "H: " << H << ", R: " << R << ", G: " << G << ", B: " << B << std::endl;
+    }
+}
 
 int main() {
     // constructors:
@@ -67,7 +122,14 @@ int main() {
         if(curLed > 24) curLed = 0;
     }*/
 
-    float H = 30., S = 1., V = 1., R, G, B;
-    HSVtoRGB(H, S, V, R, G, B);
-    std::cout << "R: " << R << ", G: " << G << ", B: " << B << std::endl;
+    testHSV2RGB();
+    
+    //bpmPeriodError();
+
+    nextTick = 0;
+    for(uint32_t tick = 0; tick < 200; ++tick) {
+        outputTick(tick);
+    }
+
+    std::cout << uint32_t(120.f * 192.f * 1.f / (60 * 1000)) << std::endl;
 }

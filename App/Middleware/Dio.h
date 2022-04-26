@@ -2,6 +2,7 @@
 
 class Dio {
 public:
-    void init();
+    void setClock(bool clock);
+    void setReset(bool reset);
     void setGate(bool gate);
 };

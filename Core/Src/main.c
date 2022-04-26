@@ -99,7 +99,6 @@ int main(void)
   MX_DAC_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
-  MX_TIM2_Init();
   MX_SPI3_Init();
   MX_I2C2_Init();
   MX_TIM5_Init();
@@ -170,9 +169,6 @@ void SystemClock_Config(void)
   */
 static void MX_NVIC_Init(void)
 {
-  /* TIM2_IRQn interrupt configuration */
-  NVIC_SetPriority(TIM2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
-  NVIC_EnableIRQ(TIM2_IRQn);
   /* DMA2_Stream0_IRQn interrupt configuration */
   NVIC_SetPriority(DMA2_Stream0_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
   NVIC_EnableIRQ(DMA2_Stream0_IRQn);

@@ -199,29 +199,6 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles TIM2 global interrupt.
-  */
-void TIM2_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM2_IRQn 0 */
-  if(LL_TIM_IsActiveFlag_UPDATE(TIM2) != RESET) {
-    LL_TIM_ClearFlag_UPDATE(TIM2);
-    //Beat_Callback(0);
-    appBeat(0);
-  }
-
-  if(LL_TIM_IsActiveFlag_CC1(TIM2) != RESET) {
-    LL_TIM_ClearFlag_CC1(TIM2);
-    //Beat_Callback(1);
-    appBeat(1);
-  }
-  /* USER CODE END TIM2_IRQn 0 */
-  /* USER CODE BEGIN TIM2_IRQn 1 */
-
-  /* USER CODE END TIM2_IRQn 1 */
-}
-
-/**
   * @brief This function handles EXTI line[15:10] interrupts.
   */
 void EXTI15_10_IRQHandler(void)

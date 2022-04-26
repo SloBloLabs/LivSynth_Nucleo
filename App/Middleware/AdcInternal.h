@@ -4,7 +4,7 @@
 
 #define NUM_ADC_CHANNELS 2
 
-class Adc {
+class AdcInternal {
 public:
     void init();
 

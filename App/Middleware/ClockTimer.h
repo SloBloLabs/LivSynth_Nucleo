@@ -51,4 +51,3 @@ private:
     uint32_t _period;
     std::list<IClockTimerObserver*> _observerList;
 };
-

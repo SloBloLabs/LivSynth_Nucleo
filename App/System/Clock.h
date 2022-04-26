@@ -1,9 +1,8 @@
 #pragma once
 
 #include "ClockTimer.h"
+#include "Config.h"
 #include <list>
-
-#define CONFIG_PPQN 192
 
 class IClockObserver {
 public:

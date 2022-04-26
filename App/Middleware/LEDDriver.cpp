@@ -11,7 +11,7 @@
 
 void LEDDriver::init() {
     //LL_I2C_Enable(LED_I2C); // -> already called by LL_I2C_Init
-    
+
     if(USE_DMA) {
         //LL_I2C_EnableIT_EVT(LED_I2C);
         //LL_I2C_EnableIT_ERR(LED_I2C);
@@ -187,6 +187,7 @@ void LEDDriver::setColourRGB(uint8_t colourLED, float r, float g, float b) {
 void LEDDriver::setColourHSV(uint8_t colourLED, float H, float S, float V) {
     float r = 0., g = 0., b = 0.;
     HSVtoRGB(H, S, V, r, g, b);
+    //DBG("H=%.2f, r=%.2f, g=%.2f, b=%.2f", H, r, g, b);
     setColourRGB(colourLED, r, g, b);
 }
 

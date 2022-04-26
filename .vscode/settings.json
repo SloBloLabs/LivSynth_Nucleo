@@ -2,6 +2,9 @@
     "cmake.configureOnOpen": false,
     "files.associations": {
         "cstdint": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "bitset": "cpp",
+        "ostream": "cpp",
+        "cmath": "cpp"
     }
 }

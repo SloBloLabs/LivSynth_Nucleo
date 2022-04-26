@@ -38,7 +38,13 @@ set(CUBEMX_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Include)
 set(PROJECT_INCLUDE_DIRECTORIES
     #${CMAKE_CURRENT_SOURCE_DIR}
-    ${APP_DIR})
+    ${APP_DIR}
+    ${APP_DIR}/Utils
+    ${APP_DIR}/System
+    ${APP_DIR}/Middleware
+    ${APP_DIR}/Model
+    ${APP_DIR}/Engine
+)
 
 # Sources
 file(GLOB_RECURSE STM32CUBEMX_SOURCES
