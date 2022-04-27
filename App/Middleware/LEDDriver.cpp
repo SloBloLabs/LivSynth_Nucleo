@@ -149,6 +149,10 @@ void LEDDriver::notifyTxError() {
 }
 
 void LEDDriver::clear() {
+    if(_transmissionBusy) {
+        return;
+    }
+
     for(uint32_t chip = 0; chip < NUM_PWM_LED_CHIPS; ++chip) {
         for(uint32_t led = 0; led < NUM_LEDS_PER_CHIP; ++led) {
             _pwmLeds[chip][led][LED_ON] = _ledTypeArray[chip][led] == COMMON_CATHODE ? 0x1000 : 0;
@@ -168,6 +172,9 @@ void LEDDriver::clear() {
 //| LED 4094/4095 | 0x0                   | 0x1     | 0x0                            | 0xFFF   |
 
 void LEDDriver::setSingleLED(uint8_t led, uint16_t brightness) {
+    if(_transmissionBusy) {
+        return;
+    }
     if(led < NUM_PWM_LED_CHIPS * NUM_LEDS_PER_CHIP) {
         uint32_t chipNumber = led / NUM_LEDS_PER_CHIP;
         led -= chipNumber * NUM_LEDS_PER_CHIP;

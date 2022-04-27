@@ -22,6 +22,7 @@ public:
     void update();
 
 private:
+    void renderSequence();
     float hueFromNote(uint32_t note);
 
     Model &_model;

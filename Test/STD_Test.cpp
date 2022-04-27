@@ -58,6 +58,12 @@ void testHSV2RGB() {
     }
 }
 
+void testHSV2RGB2() {
+    float H = 0.f, S = 0., V = 1., R, G, B;
+    HSVtoRGB(H, S, V, R, G, B);
+    std::cout << "H: " << H << ", R: " << R << ", G: " << G << ", B: " << B << std::endl;
+}
+
 int main() {
     // constructors:
     constexpr std::bitset<4> b1;
@@ -122,7 +128,8 @@ int main() {
         if(curLed > 24) curLed = 0;
     }*/
 
-    testHSV2RGB();
+    //testHSV2RGB();
+    testHSV2RGB2();
     
     //bpmPeriodError();
 

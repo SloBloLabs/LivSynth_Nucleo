@@ -9,7 +9,10 @@ void UiController::init() {
 void UiController::update() {
     //handle keys
     _leds.clear();
+    renderSequence();
+}
 
+void UiController::renderSequence() {
     uint8_t pattern = _engine.trackEngine()->pattern();
     uint8_t currentStep = reinterpret_cast<NoteTrackEngine*>(_engine.trackEngine())->currentStep();
     NoteSequence &sequence = _model.project().noteSequence(pattern);
@@ -32,6 +35,8 @@ void UiController::update() {
             // 12bit: 0           136          272           408           544           680           816
             // 12bit value = octave [0-4] * 816 + hue * 816 / 360
             _leds.setColourHSV(step, hueFromNote(note), 1.f, step == currentStep ? 1.f : .1f);
+        } else if(step == currentStep) {
+            _leds.setColourHSV(step, 0.f, 0.f, .05f);
         }
     }
 }

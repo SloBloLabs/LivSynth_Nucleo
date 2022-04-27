@@ -70,9 +70,9 @@ void appMain() {
         }
         
         // update sequencer input and state
-        if(curMillis - updateMillis > 99) {
+        if(curMillis - updateMillis > 79) {
             updateMillis = curMillis;
-            
+
             /*for(uint8_t led = 0; led < 8; ++led) {
                 ledDriver.setColourHSV(led, hue, 1., 1.);
             }
