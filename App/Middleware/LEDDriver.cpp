@@ -61,12 +61,10 @@ void LEDDriver::init() {
     _curChip = 0;
 
     for(uint32_t chip = 0; chip < NUM_PWM_LED_CHIPS; ++chip) {
-        for(uint32_t led = 0; led < NUM_LEDS_PER_CHIP; ++led) {
-            _pwmLeds[chip][led][LED_ON] = _ledTypeArray[chip][led] == COMMON_CATHODE ? 0x1000 : 0;
-            _pwmLeds[chip][led][LED_OFF] = 0;
-        }
         resetChip(chip);
     }
+    
+    clear();
 
     // Tie to ground! Disabling brings common cathode LEDs full on.
     ledEnable();
@@ -148,6 +146,15 @@ void LEDDriver::notifyTxComplete() {
 void LEDDriver::notifyTxError() {
     DBG("LED Tx Error!");
     NVIC_DisableIRQ(DMA1_Stream7_IRQn);
+}
+
+void LEDDriver::clear() {
+    for(uint32_t chip = 0; chip < NUM_PWM_LED_CHIPS; ++chip) {
+        for(uint32_t led = 0; led < NUM_LEDS_PER_CHIP; ++led) {
+            _pwmLeds[chip][led][LED_ON] = _ledTypeArray[chip][led] == COMMON_CATHODE ? 0x1000 : 0;
+            _pwmLeds[chip][led][LED_OFF] = 0;
+        }
+    }
 }
 
 //|---------------|---------------------------------|------------------------------------------|

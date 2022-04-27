@@ -24,6 +24,10 @@ public:
     uint32_t noteDivisor() const;
     uint32_t measureDivisor() const;
 
+    inline TrackEngine* trackEngine() {
+        return _trackEngine;
+    }
+
 private:
     virtual void onClockOutput(const IClockObserver::OutputState& state) override;
 

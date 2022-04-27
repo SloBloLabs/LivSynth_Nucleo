@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ShiftRegister.h"
 #include "RingBuffer.h"
 

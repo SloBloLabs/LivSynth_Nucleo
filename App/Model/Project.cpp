@@ -13,5 +13,5 @@ void Project::clear() {
     _track.clear();
 
     noteSequence(0).setGates({ 1,0,0,1,0,1,0,0 });
-    noteSequence(0).setNotes({ 3999, 2, 999, 2234, 3321, 3022, 3456, 22, 666 });
+    noteSequence(0).setNotes({ 2720, 2, 999, 3944, 3321, 1768, 3456, 22, 666 });
 }

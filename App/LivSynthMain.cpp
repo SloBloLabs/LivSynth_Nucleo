@@ -11,6 +11,7 @@
 #include "LEDDriver.h"
 #include "Model.h"
 #include "Engine.h"
+#include "UiController.h"
 #include <cstdio>
 #include <bitset>
 
@@ -29,6 +30,7 @@ static CCMRAM_BSS ButtonMatrix  buttonMatrix(shiftRegister);
 static            LEDDriver     ledDriver;
 static            Model         model;
 static CCMRAM_BSS Engine        engine(model, clockTimer, adc, dac, dio);
+static CCMRAM_BSS UiController  uiController(model, engine, adc, dac, dio, buttonMatrix, ledDriver);
 
 void appMain() {
     System::init();
@@ -39,6 +41,7 @@ void appMain() {
     shiftRegister.init();
     ledDriver.init();
     engine.init();
+    uiController.init();
 
     stopSequencer();
 
@@ -62,6 +65,7 @@ void appMain() {
 
         if(curMillis - engineMillis > 1) {
             engineMillis = curMillis;
+            uiController.update();
             engine.update();
         }
         
@@ -69,7 +73,7 @@ void appMain() {
         if(curMillis - updateMillis > 99) {
             updateMillis = curMillis;
             
-            for(uint8_t led = 0; led < 8; ++led) {
+            /*for(uint8_t led = 0; led < 8; ++led) {
                 ledDriver.setColourHSV(led, hue, 1., 1.);
             }
             hue += 10;
@@ -79,10 +83,9 @@ void appMain() {
             ledDriver.setSingleLED(curLed, 0xFFF);
             lastLed = curLed;
             if(!(++curLed % 15)) curLed++;
-            if(curLed > 24) curLed = 0;
-            ledDriver.process();
+            if(curLed > 24) curLed = 0;*/
 
-            //dac.setValue(hue / 360. * 0xFFF);
+            ledDriver.process();
 
             std::bitset<8> myBitset;
             shiftRegister.process();

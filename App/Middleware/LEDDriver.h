@@ -1,3 +1,5 @@
+#pragma once
+
 #include "main.h"
 #include <cstdint>
 #include <array>
@@ -37,6 +39,7 @@ public:
     void ledEnable();
     void ledDisable();
     bool ledEnabled();
+    void clear();
     void setSingleLED(uint8_t led, uint16_t brightness);
     void setColourRGB(uint8_t colourLED, float r, float g, float b);
     void setColourHSV(uint8_t colourLED, float H, float S, float V);

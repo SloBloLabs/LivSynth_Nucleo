@@ -76,13 +76,13 @@ public:
         _runMode = runMode;
     }
 
-    inline int firstStep() const { return _firstStep; }
-    inline void setFirstStep(int firstStep) {
+    inline uint8_t firstStep() const { return _firstStep; }
+    inline void setFirstStep(uint8_t firstStep) {
         _firstStep = firstStep;
     }
 
-    inline int lastStep() const { return _lastStep; }
-    inline void setLastStep(int lastStep) {
+    inline uint8_t lastStep() const { return _lastStep; }
+    inline void setLastStep(uint8_t lastStep) {
         _lastStep = lastStep;
     }
 

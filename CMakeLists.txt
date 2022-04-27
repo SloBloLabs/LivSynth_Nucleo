@@ -44,6 +44,7 @@ set(PROJECT_INCLUDE_DIRECTORIES
     ${APP_DIR}/Middleware
     ${APP_DIR}/Model
     ${APP_DIR}/Engine
+    ${APP_DIR}/UI
 )
 
 # Sources
