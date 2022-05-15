@@ -25,6 +25,16 @@ public:
     uint32_t noteDivisor() const;
     uint32_t measureDivisor() const;
 
+    // gate overrides
+    inline bool gateOutputOverride() const { return _gateOutputOverride; }
+    inline void setGateOutputOverride(bool enabled) { _gateOutputOverride = enabled; }
+    inline void setGateOutput(bool gate) { _gateOutputOverrideValue = gate; }
+
+    // cv overrides
+    inline bool cvOutputOverride() const { return _cvOutputOverride; }
+    inline void setCvOutputOverride(bool enabled) { _cvOutputOverride = enabled; }
+    inline void setCvOutput(float value) { _cvOverrideValue = value; }
+
     inline TrackEngine* trackEngine() {
         return _trackEngine;
     }
@@ -38,6 +48,7 @@ private:
 
     void updateTrackSetup();
     void updateTrackOutputs();
+    void updateOverrides();
 
     void initClock();
     
@@ -53,4 +64,12 @@ private:
 
     uint32_t _tick = 0;
     uint32_t _lastSystemTicks = 0;
+
+    // gate output overrides
+    bool _gateOutputOverride = false;
+    bool _gateOutputOverrideValue = 0;
+
+    // cv output overrides
+    bool _cvOutputOverride = false;
+    float _cvOverrideValue = 0;
 };

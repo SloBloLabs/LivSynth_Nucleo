@@ -37,6 +37,8 @@ public:
 
     bool isStep() const { return _code >= Step1 && _code <= Step8; }
 
+    bool none() const { return _state.none(); }
+
 private:
     int _code;
     const KeyState &_state;

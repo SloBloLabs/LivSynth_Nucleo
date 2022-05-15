@@ -41,6 +41,7 @@ bool Engine::update() {
         if(updated) {
             _trackEngine->update(0.f);
             updateTrackOutputs();
+            updateOverrides();
             outputUpdated = true;
             // notify UI?
         }
@@ -49,6 +50,10 @@ bool Engine::update() {
     if(outputUpdated) {
         _trackEngine->update(dt);
         updateTrackOutputs();
+        updateOverrides();
+
+        _dac.update();
+        _dio.update();
     }
 
     return outputUpdated || static_cast<NoteTrackEngine*>(_trackEngine)->stepTriggered();
@@ -85,13 +90,28 @@ uint32_t Engine::measureDivisor() const {
 
 
 void Engine::keyDown(KeyEvent &event) {
-    if(event.key().isStep() && event.count() > 1) {
-        static_cast<NoteTrackEngine*>(_trackEngine)->sequence().step(event.key().code()).toggleGate();
+    NoteSequence &sequence = static_cast<NoteTrackEngine*>(_trackEngine)->sequence();
+    if(event.count() > 1) {
+        if(event.key().isStep()) {
+            // Toggle gate
+            sequence.step(event.key().code()).toggleGate();
+        }
+    } else {
+        if(event.key().isStep()) {
+            setGateOutputOverride(true);
+            setGateOutput(true);
+            setCvOutputOverride(true);
+            setCvOutput(sequence.step(event.key().code()).note());
+        }
     }
 }
 
 void Engine::keyUp(KeyEvent &event) {
-
+    if(event.key().isStep() && event.key().none()) {
+        setGateOutputOverride(false);
+        setGateOutput(false);
+        setCvOutputOverride(false);
+    }
 }
 
 // called by Clock::notifyObservers
@@ -111,6 +131,15 @@ void Engine::updateTrackOutputs() {
     //DBG("Ticks: %ld: Progress: %.2f, Gate: %d, CV: %.2f", _lastSystemTicks, _trackEngine->sequenceProgress(), gateOutput, cvOutput);
     _dac.setValue(cvOutput);
     _dio.setGate(gateOutput);
+}
+
+void Engine::updateOverrides() {
+    if(_gateOutputOverride) {
+        _dio.setGate(_gateOutputOverrideValue);
+    }
+    if(_cvOutputOverride) {
+        _dac.setValue(_cvOverrideValue);
+    }
 }
 
 void Engine::initClock() {

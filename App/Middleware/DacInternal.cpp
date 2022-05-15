@@ -17,6 +17,9 @@ void DacInternal::init() {
 
 void DacInternal::setValue(uint32_t value) {
     _value = value;
+}
+
+void DacInternal::update() {
     LL_DAC_ConvertData12RightAligned(DAC1, LL_DAC_CHANNEL_2, _value);
     LL_DAC_TrigSWConversion(DAC1, LL_DAC_CHANNEL_2);
     volatile uint32_t wait_loop_index = DAC_DELAY_VOLTAGE_SETTLING_CYCLES;

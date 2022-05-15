@@ -59,7 +59,7 @@ void UiController::renderSequence() {
         gate = sequence.step(step).gate();
         note = sequence.step(step).note();
 
-        if(gate) {
+        if(gate || _keyState[step]) {
             // 68 per half step note
             // 5 octaves -> 5 * 12 * 68 = 4080
             // 4095 max
