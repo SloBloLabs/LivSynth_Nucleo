@@ -6,5 +6,6 @@
         "bitset": "cpp",
         "ostream": "cpp",
         "cmath": "cpp"
-    }
+    },
+    "cortex-debug.variableUseNaturalFormat": true
 }

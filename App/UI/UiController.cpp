@@ -1,18 +1,53 @@
 #include "UiController.h"
 #include "System.h"
 #include "NoteTrackEngine.h"
+#include "swvPrint.h"
 
 void UiController::init() {
+    _keyState.reset();
     _lastControllerUpdateTicks = System::ticks();
 }
 
-void UiController::update() {
-    //handle keys
+/*void UiController::update() {
+    handleKeys();
+
     _leds.clear();
     renderSequence();
+}*/
+
+void UiController::handleKeys() {
+    ButtonMatrix::Event event;
+    while(_buttonMatrix.nextEvent(event)) {
+        bool isDown = event.action() == ButtonMatrix::Event::KeyDown;
+        _keyState[event.value()] = isDown;
+        Key key(event.value(), _keyState);
+        if(isDown) {
+            KeyEvent keyPressEvent = _keyPressEventTracker.process(key);
+            //DBG("KeyPressEvent type=%d, key=%d, count=%d", keyPressEvent.type(), keyPressEvent.key().code(), keyPressEvent.count());
+            handleEvent(keyPressEvent);
+        } else {
+            KeyEvent keyEvent(KeyEvent::KeyUp, key, 1);
+            handleEvent(keyEvent);
+        }
+    }
+}
+
+void UiController::handleEvent(KeyEvent event) {
+    //DBG("KeyPressEvent type=%d, key=%d, count=%d", event.type(), event.key().code(), event.count());
+    switch(event.type()) {
+    case KeyEvent::KeyDown:
+        _engine.keyDown(event);
+        break;
+    case KeyEvent::KeyUp:
+        _engine.keyUp(event);
+        break;
+    default:
+        break;
+    }
 }
 
 void UiController::renderSequence() {
+    _leds.clear();
     uint8_t pattern = _engine.trackEngine()->pattern();
     uint8_t currentStep = reinterpret_cast<NoteTrackEngine*>(_engine.trackEngine())->currentStep();
     NoteSequence &sequence = _model.project().noteSequence(pattern);
@@ -29,7 +64,7 @@ void UiController::renderSequence() {
             // 5 octaves -> 5 * 12 * 68 = 4080
             // 4095 max
             // 360° ^= 12 * 68 = 816
-            // Color: rot         gelb         grün          hellblau      dunkelblau    magenta       rot
+            // Color: red         yellow       green         lightblue     darkblue      magenta       red
             // Hue  : 0° -------- 60° -------- 120° -------- 180° -------- 240° -------- 300° -------- 0°
             // Note : C           D            E             F#            G#            A#            C
             // 12bit: 0           136          272           408           544           680           816

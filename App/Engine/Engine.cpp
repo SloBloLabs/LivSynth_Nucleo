@@ -21,7 +21,7 @@ void Engine::init() {
     updateTrackSetup();
 }
 
-void Engine::update() {
+bool Engine::update() {
     uint32_t systemTicks = System::ticks();
     float dt = (0.001f * (systemTicks - _lastSystemTicks));
     _lastSystemTicks = systemTicks;
@@ -33,6 +33,7 @@ void Engine::update() {
     // read buttons (?)
 
     uint32_t tick;
+    bool outputUpdated = false;
     while(_clock.checkTick(&tick)) {
         _tick = tick;
 
@@ -40,15 +41,17 @@ void Engine::update() {
         if(updated) {
             _trackEngine->update(0.f);
             updateTrackOutputs();
+            outputUpdated = true;
+            // notify UI?
         }
     }
-
-    _trackEngine->update(dt);
-    updateTrackOutputs();
-
-    //_cvOutput.update();
-    //_gateOutput.update();
     
+    if(outputUpdated) {
+        _trackEngine->update(dt);
+        updateTrackOutputs();
+    }
+
+    return outputUpdated || static_cast<NoteTrackEngine*>(_trackEngine)->stepTriggered();
 }
 
 void Engine::togglePlay() {
@@ -80,6 +83,17 @@ uint32_t Engine::measureDivisor() const {
     return _project.timeSignature().measureDivisor();
 }
 
+
+void Engine::keyDown(KeyEvent &event) {
+    if(event.key().isStep() && event.count() > 1) {
+        static_cast<NoteTrackEngine*>(_trackEngine)->sequence().step(event.key().code()).toggleGate();
+    }
+}
+
+void Engine::keyUp(KeyEvent &event) {
+
+}
+
 // called by Clock::notifyObservers
 void Engine::onClockOutput(const IClockObserver::OutputState& state) {
     _dio.setClock(state.clock);
@@ -94,7 +108,7 @@ void Engine::updateTrackSetup() {
 void Engine::updateTrackOutputs() {
     float cvOutput = _trackEngine->cvOutput();
     bool gateOutput = _trackEngine->gateOutput();
-    DBG("Ticks: %ld: Progress: %.2f, Gate: %d, CV: %.2f", _lastSystemTicks, _trackEngine->sequenceProgress(), gateOutput, cvOutput);        
+    //DBG("Ticks: %ld: Progress: %.2f, Gate: %d, CV: %.2f", _lastSystemTicks, _trackEngine->sequenceProgress(), gateOutput, cvOutput);
     _dac.setValue(cvOutput);
     _dio.setGate(gateOutput);
 }

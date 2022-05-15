@@ -75,7 +75,6 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor) {
 
     const auto &step = sequence.step(_currentStep);
     bool stepGate = step.gate();
-    uint32_t note = step.note();
 
     if(stepGate) {
         uint32_t stepLength = (divisor * step.length()) / NoteSequence::Length::Range;
@@ -84,6 +83,8 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor) {
         _gateQueue.pushReplace({ Groove::applySwing(tick + gateOffset + stepLength, swing()), false });
 
         // CV
+        uint32_t note = step.note();
         _cvQueue.push({ Groove::applySwing(tick + gateOffset, swing()), note });
     }
+    _triggerStep = true;
 }

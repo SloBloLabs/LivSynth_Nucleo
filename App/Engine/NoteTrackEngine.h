@@ -25,9 +25,15 @@ public:
         return _currentStep < 0 ? 0.f : float(_currentStep - _sequence->firstStep()) / (_sequence->lastStep() - _sequence->firstStep());
     }
 
-    const NoteSequence &sequence() const { return *_sequence; }
+    NoteSequence &sequence() const { return *_sequence; }
 
     int currentStep() const { return _currentStep; }
+
+    inline bool stepTriggered() {
+        bool result = _triggerStep;
+        _triggerStep = false;
+        return result;
+    };
 
 private:
     void triggerStep(uint32_t tick, uint32_t divisor);
@@ -38,6 +44,7 @@ private:
     uint32_t _freeRelativeTick;
     SequenceState _sequenceState;
     int _currentStep;
+    bool _triggerStep;
 
     bool _activity;
     bool _gateOutput;

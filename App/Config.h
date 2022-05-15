@@ -8,3 +8,6 @@
 
 // Model
 #define CONFIG_PATTERN_COUNT    8
+
+// Buttons
+#define CONFIG_NUM_BUTTONS     10

@@ -2,6 +2,7 @@
 
 #include "../App/Utils/Utils.h"
 #include "../App/Utils/Groove.h"
+#include "../App/UI/Event.h"
 #include <bitset>
 #include <cassert>
 #include <iostream>
@@ -139,4 +140,16 @@ int main() {
     }
 
     std::cout << uint32_t(120.f * 192.f * 1.f / (60 * 1000)) << std::endl;
+
+    KeyState keystate;
+    KeyPressEvent kpevent(Event::KeyPress, Key(2, keystate), 4);
+    Event &event = kpevent;
+    KeyPressEvent &kpevent2 = event.as<KeyPressEvent>();
+    std::cout << "KeyPressEvent "
+        << "type: " << kpevent2.type()
+        << ", consumed: " << kpevent2.consumed()
+        << ", key: " << kpevent2.key().code()
+        << ", count: " << kpevent2.count()
+        << std::endl;
+
 }

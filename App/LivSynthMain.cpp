@@ -13,7 +13,6 @@
 #include "Engine.h"
 #include "UiController.h"
 #include <cstdio>
-#include <bitset>
 
 #define CCMRAM_BSS __attribute__((section(".ccmram")))
 
@@ -49,9 +48,6 @@ void appMain() {
 
     startSequencer();
 
-    uint8_t curLed = 0, lastLed = 0;
-    float hue = 0.;
-
     uint32_t curMillis
            , logMillis    = 0
            , updateMillis = 0
@@ -65,15 +61,23 @@ void appMain() {
 
         if(curMillis - engineMillis > 1) {
             engineMillis = curMillis;
-            uiController.update();
-            engine.update();
+            uiController.handleKeys();
+            bool updated = engine.update();
+            if(updated) {
+                uiController.renderSequence();
+                ledDriver.process();
+                //DBG("Update LEDs");
+            }
         }
         
         // update sequencer input and state
         if(curMillis - updateMillis > 79) {
             updateMillis = curMillis;
 
-            /*for(uint8_t led = 0; led < 8; ++led) {
+            /*static uint8_t curLed = 0, lastLed = 0;
+            static float hue = 0.;
+
+            for(uint8_t led = 0; led < 8; ++led) {
                 ledDriver.setColourHSV(led, hue, 1., 1.);
             }
             hue += 10;
@@ -85,10 +89,9 @@ void appMain() {
             if(!(++curLed % 15)) curLed++;
             if(curLed > 24) curLed = 0;*/
 
-            ledDriver.process();
+            //ledDriver.process();
 
-            std::bitset<8> myBitset;
-            shiftRegister.process();
+            buttonMatrix.process();
             setTempo();
             setPitch();
         }

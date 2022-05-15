@@ -7,12 +7,13 @@
 #include "DacInternal.h"
 #include "Dio.h"
 #include "TrackEngine.h"
+#include "Event.h"
 
 class Engine : private IClockObserver {
 public:
     Engine(Model &model, ClockTimer& clockTimer, AdcInternal& adc, DacInternal& dac, Dio& dio);
     void init();
-    void update();
+    bool update();
 
     void togglePlay();
     void clockStart();
@@ -27,6 +28,10 @@ public:
     inline TrackEngine* trackEngine() {
         return _trackEngine;
     }
+
+    // event handlers
+    void keyDown(KeyEvent &event);
+    void keyUp(KeyEvent &event);
 
 private:
     virtual void onClockOutput(const IClockObserver::OutputState& state) override;

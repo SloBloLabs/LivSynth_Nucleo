@@ -3,6 +3,8 @@
 #include "DacInternal.h"
 #include "ButtonMatrix.h"
 #include "LEDDriver.h"
+#include "Event.h"
+#include "KeyPressEventTracker.h"
 
 class UiController {
 public:
@@ -14,16 +16,16 @@ public:
         _dio(dio),
         _buttonMatrix(buttonMatrix),
         _leds(leds)
-    {
-
-    }
+    {}
 
     void init();
-    void update();
+    void handleKeys();
+    void renderSequence();
 
 private:
-    void renderSequence();
+    
     float hueFromNote(uint32_t note);
+    void handleEvent(KeyEvent event);
 
     Model &_model;
     Engine &_engine;
@@ -33,8 +35,8 @@ private:
     ButtonMatrix &_buttonMatrix;
     LEDDriver &_leds;
 
-    //KeyState
-    //KeyPressEventTracker
+    KeyState _keyState;
+    KeyPressEventTracker _keyPressEventTracker;
 
     uint32_t _lastControllerUpdateTicks;
 };

@@ -3,9 +3,7 @@
 
 ButtonMatrix::ButtonMatrix(ShiftRegister &shiftRegister) :
     _shiftRegister(shiftRegister)
-{
-
-}
+{}
 
 void ButtonMatrix::init() {
     std::memset(_buttonState, 0, sizeof(_buttonState));

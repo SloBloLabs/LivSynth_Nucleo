@@ -19,6 +19,7 @@ LDFLAGS    = -Wall -pedantic
 
 RM         = rm -f
 
+INCLUDE := -I. -I../App
 SOURCES := $(wildcard *.cpp)
 OBJECTS := $(patsubst %.cpp,%.obj, $(SOURCES))
 TARGETS := $(patsubst %.cpp,%.app, $(SOURCES))
@@ -30,7 +31,7 @@ $(TARGETS): $(OBJECTS)
 	@echo "Linking complete!"
 
 %.obj : %.cpp
-	@$(CXX) -c $(CXXFLAGS) $< -o $@
+	@$(CXX) -c $(CXXFLAGS) $(INCLUDE) $< -o $@
 	@echo "Compilation complete!"
 
 helpsummary:
