@@ -25,3 +25,18 @@ private:
     int _count;
 
 };
+
+class PotEvent {
+public:
+    PotEvent(size_t index, float value) :
+        _index(index),
+        _value(value)
+    {}
+
+    inline size_t index() const { return _index; }
+    inline float value() const { return _value; }
+
+private:
+    size_t _index;
+    float _value;
+};

@@ -12,7 +12,6 @@
 #include "Model.h"
 #include "Engine.h"
 #include "UiController.h"
-#include <cstdio>
 
 #define CCMRAM_BSS __attribute__((section(".ccmram")))
 
@@ -61,7 +60,7 @@ void appMain() {
 
         if(curMillis - engineMillis > 1) {
             engineMillis = curMillis;
-            uiController.handleKeys();
+            uiController.handleControls();
             bool updated = engine.update();
             if(updated) {
                 uiController.renderSequence();
@@ -132,6 +131,7 @@ void appADCCompleteRequest() {
     // only called if interrupt is enabled
     // see AdcInternal.cpp -> LL_DMA_EnableIT_TC(DMA2, LL_DMA_STREAM_0)
     LL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+    uiController.updateCV();
 }
 
 float adc2bpm(uint16_t adcValue) {

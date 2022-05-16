@@ -5,6 +5,7 @@
 #include "LEDDriver.h"
 #include "Event.h"
 #include "KeyPressEventTracker.h"
+#include "CVReader.h"
 
 class UiController {
 public:
@@ -14,13 +15,15 @@ public:
     {}
 
     void init();
-    void handleKeys();
+    void handleControls();
     void renderSequence();
+    void updateCV();
 
 private:
     
     float hueFromNote(uint32_t note);
     void handleEvent(KeyEvent event);
+    void handleEvent(PotEvent event);
 
     Model &_model;
     Engine &_engine;
@@ -29,4 +32,7 @@ private:
     KeyPressEventTracker _keyPressEventTracker;
 
     uint32_t _lastControllerUpdateTicks;
+
+    CVReader _cvReader;
+    float _cvValue[CONFIG_NUM_POTS];
 };

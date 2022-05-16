@@ -3,12 +3,17 @@
 #include "NoteTrackEngine.h"
 #include "swvPrint.h"
 
+extern AdcInternal  adc;
 extern ButtonMatrix buttonMatrix;
 extern LEDDriver    ledDriver;
 
 void UiController::init() {
     _keyState.reset();
     _lastControllerUpdateTicks = System::ticks();
+    _cvReader.init();
+    for(size_t i = 0; i < CONFIG_NUM_POTS; ++i) {
+        _cvValue[i] = 0.f;
+    }
 }
 
 /*void UiController::update() {
@@ -18,7 +23,7 @@ void UiController::init() {
     renderSequence();
 }*/
 
-void UiController::handleKeys() {
+void UiController::handleControls() {
     ButtonMatrix::Event event;
     while(buttonMatrix.nextEvent(event)) {
         bool isDown = event.action() == ButtonMatrix::Event::KeyDown;
@@ -33,19 +38,18 @@ void UiController::handleKeys() {
             handleEvent(keyEvent);
         }
     }
-}
 
-void UiController::handleEvent(KeyEvent event) {
-    //DBG("KeyPressEvent type=%d, key=%d, count=%d", event.type(), event.key().code(), event.count());
-    switch(event.type()) {
-    case KeyEvent::KeyDown:
-        _engine.keyDown(event);
-        break;
-    case KeyEvent::KeyUp:
-        _engine.keyUp(event);
-        break;
-    default:
-        break;
+    float cvValue;
+    for(size_t i = 0; i < CONFIG_NUM_POTS; ++i) {
+        cvValue = _cvReader.getCV(i);
+        //DBG("%d ov:%.2f, nv:%.2f, diff:%.2f", i, _cvValue[i], cvValue, cvValue - _cvValue[i]);
+        if(std::abs(cvValue - _cvValue[i]) > 0.02) {
+            // trigger event
+            //DBG("cv value updated: index=%d, value=%.2f", i, cvValue);
+            _cvValue[i] = cvValue;
+            PotEvent potEvent(i, cvValue);
+            handleEvent(potEvent);
+        }
     }
 }
 
@@ -79,6 +83,37 @@ void UiController::renderSequence() {
     }
 }
 
+void UiController::updateCV() {
+    uint16_t value;
+    for(size_t i = 0; i < CONFIG_NUM_POTS; ++i) {
+        value = adc.channel(i);
+        _cvReader.push(i, value); 
+    }
+}
+
 float UiController::hueFromNote(uint32_t note) {
     return ((note % 816) * 360.f) / 816;
+}
+
+void UiController::handleEvent(KeyEvent event) {
+    //DBG("KeyPressEvent type=%d, key=%d, count=%d", event.type(), event.key().code(), event.count());
+    switch(event.type()) {
+    case KeyEvent::KeyDown:
+        _engine.keyDown(event);
+        break;
+    case KeyEvent::KeyUp:
+        _engine.keyUp(event);
+        break;
+    default:
+        break;
+    }
+}
+
+void UiController::handleEvent(PotEvent event) {
+    if(event.index() == 0) {
+        // Pitch
+        _engine.setCV(event);
+    } else if(event.index() == 1) {
+        // Tempo
+    }
 }

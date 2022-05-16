@@ -35,6 +35,9 @@ public:
     inline void setCvOutputOverride(bool enabled) { _cvOutputOverride = enabled; }
     inline void setCvOutput(float value) { _cvOverrideValue = value; }
 
+    inline void setSelectedStep(int step) { _selectedStep = step; }
+    inline int selectedStep() { return _selectedStep; }
+
     inline TrackEngine* trackEngine() {
         return _trackEngine;
     }
@@ -42,6 +45,7 @@ public:
     // event handlers
     void keyDown(KeyEvent &event);
     void keyUp(KeyEvent &event);
+    void setCV(PotEvent &event);
 
 private:
     virtual void onClockOutput(const IClockObserver::OutputState& state) override;
@@ -69,4 +73,6 @@ private:
     // cv output overrides
     bool _cvOutputOverride = false;
     float _cvOverrideValue = 0;
+
+    int _selectedStep = -1;
 };

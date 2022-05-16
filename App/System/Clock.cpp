@@ -1,7 +1,6 @@
 #include "Clock.h"
 #include "main.h"
 #include "Groove.h"
-#include <cstdio>
 #include <cmath>
 
 Clock::Clock(ClockTimer &timer) :

@@ -1,6 +1,5 @@
 #include "LEDDriver.h"
 #include "System.h"
-#include <cstdio>
 #include "math.h"
 #include "Utils.h"
 

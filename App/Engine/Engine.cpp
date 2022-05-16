@@ -101,7 +101,8 @@ void Engine::keyDown(KeyEvent &event) {
             setGateOutputOverride(true);
             setGateOutput(true);
             setCvOutputOverride(true);
-            setCvOutput(sequence.step(event.key().code()).note());
+            _selectedStep = event.key().code();
+            setCvOutput(sequence.step(_selectedStep).note());
         }
     }
 }
@@ -111,6 +112,16 @@ void Engine::keyUp(KeyEvent &event) {
         setGateOutputOverride(false);
         setGateOutput(false);
         setCvOutputOverride(false);
+        _selectedStep = -1;
+    }
+}
+
+void Engine::setCV(PotEvent &event) {
+    if(gateOutputOverride()) {
+        NoteSequence &sequence = static_cast<NoteTrackEngine*>(_trackEngine)->sequence();
+        //DBG("value:%.2f", event.value());
+        sequence.step(_selectedStep).setNote(event.value() * 0xFFF);
+        setCvOutput(sequence.step(_selectedStep).note());
     }
 }
 
