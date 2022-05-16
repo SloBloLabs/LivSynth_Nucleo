@@ -11,7 +11,7 @@
 
 class Engine : private IClockObserver {
 public:
-    Engine(Model &model, ClockTimer& clockTimer, AdcInternal& adc, DacInternal& dac, Dio& dio);
+    Engine(Model &model, ClockTimer& clockTimer);
     void init();
     bool update();
 
@@ -56,9 +56,6 @@ private:
     Project &_project;
     
     Clock _clock;
-    AdcInternal _adc;
-    DacInternal _dac;
-    Dio _dio;
 
     TrackEngine* _trackEngine;
 

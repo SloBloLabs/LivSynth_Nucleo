@@ -4,13 +4,13 @@
 #include "NoteTrackEngine.h"
 #include "swvPrint.h"
 
-Engine::Engine(Model &model, ClockTimer& clockTimer, AdcInternal& adc, DacInternal& dac, Dio& dio) :
+extern Dio dio;
+extern DacInternal dac;
+
+Engine::Engine(Model &model, ClockTimer& clockTimer) :
     _model(model),
     _project(model.project()),
-    _clock(clockTimer),
-    _adc(adc),
-    _dac(dac),
-    _dio(dio)
+    _clock(clockTimer)
 {
     _trackEngine = nullptr;
 }
@@ -52,8 +52,8 @@ bool Engine::update() {
         updateTrackOutputs();
         updateOverrides();
 
-        _dac.update();
-        _dio.update();
+        dac.update();
+        dio.update();
     }
 
     return outputUpdated || static_cast<NoteTrackEngine*>(_trackEngine)->stepTriggered();
@@ -116,7 +116,7 @@ void Engine::keyUp(KeyEvent &event) {
 
 // called by Clock::notifyObservers
 void Engine::onClockOutput(const IClockObserver::OutputState& state) {
-    _dio.setClock(state.clock);
+    dio.setClock(state.clock);
 }
 
 void Engine::updateTrackSetup() {
@@ -129,16 +129,16 @@ void Engine::updateTrackOutputs() {
     float cvOutput = _trackEngine->cvOutput();
     bool gateOutput = _trackEngine->gateOutput();
     //DBG("Ticks: %ld: Progress: %.2f, Gate: %d, CV: %.2f", _lastSystemTicks, _trackEngine->sequenceProgress(), gateOutput, cvOutput);
-    _dac.setValue(cvOutput);
-    _dio.setGate(gateOutput);
+    dac.setValue(cvOutput);
+    dio.setGate(gateOutput);
 }
 
 void Engine::updateOverrides() {
     if(_gateOutputOverride) {
-        _dio.setGate(_gateOutputOverrideValue);
+        dio.setGate(_gateOutputOverrideValue);
     }
     if(_cvOutputOverride) {
-        _dac.setValue(_cvOverrideValue);
+        dac.setValue(_cvOverrideValue);
     }
 }
 

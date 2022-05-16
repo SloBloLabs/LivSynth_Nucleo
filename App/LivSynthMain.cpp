@@ -21,15 +21,15 @@ static volatile float    _pitch;
 static volatile uint32_t _dacValue;
 
 static CCMRAM_BSS ClockTimer    clockTimer;
-static            AdcInternal   adc;
-static CCMRAM_BSS DacInternal   dac;
-static CCMRAM_BSS Dio           dio;
+                  AdcInternal   adc;
+       CCMRAM_BSS DacInternal   dac;
+       CCMRAM_BSS Dio           dio;
 static CCMRAM_BSS ShiftRegister shiftRegister;
-static CCMRAM_BSS ButtonMatrix  buttonMatrix(shiftRegister);
-static            LEDDriver     ledDriver;
+       CCMRAM_BSS ButtonMatrix  buttonMatrix(shiftRegister);
+                  LEDDriver     ledDriver;
 static            Model         model;
-static CCMRAM_BSS Engine        engine(model, clockTimer, adc, dac, dio);
-static CCMRAM_BSS UiController  uiController(model, engine, adc, dac, dio, buttonMatrix, ledDriver);
+static CCMRAM_BSS Engine        engine(model, clockTimer);
+static CCMRAM_BSS UiController  uiController(model, engine);
 
 void appMain() {
     System::init();
