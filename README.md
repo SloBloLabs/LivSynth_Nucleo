@@ -42,6 +42,7 @@ Tested on
 
 2022-03-08: There is an issue using ARM Toolchain 11.2.1: https://community.arm.com/support-forums/f/compilers-and-libraries-forum/52377/internal-compiler-errors-with-arm-none-eabi-gcc-11-2-2022-02-on-macs-with-apple-silicon
 Stick with 10.3 for now!!
+2022-11-13: The issue is solved within Toolchain version 11.3.1
 
 ---
 
