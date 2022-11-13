@@ -54,3 +54,10 @@ Upload to github
  - git branch -M main
  - git remote add origin https://github.com/SloBloLabs/<"ProjectRepo">.git
  - git push -u origin main
+
+--
+
+Update github access token
+ - git remote remove origin
+ - git remote add origin https://oauth2:<<new oauth token>>@github.com/<<username>>/<<reponame>>.git
+ - git remote -v
