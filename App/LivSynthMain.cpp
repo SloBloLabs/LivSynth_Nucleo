@@ -12,6 +12,7 @@
 #include "Model.h"
 #include "Engine.h"
 #include "UiController.h"
+#include "swvPrint.h"
 
 #define CCMRAM_BSS __attribute__((section(".ccmram")))
 

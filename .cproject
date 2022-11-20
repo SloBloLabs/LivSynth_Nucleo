@@ -58,6 +58,12 @@
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include"/>
 									<listOptionValue builtIn="false" value="../App"/>
+									<listOptionValue builtIn="false" value="../App/System"/>
+									<listOptionValue builtIn="false" value="../App/UI"/>
+									<listOptionValue builtIn="false" value="../App/Utils"/>
+									<listOptionValue builtIn="false" value="../App/Engine"/>
+									<listOptionValue builtIn="false" value="../App/Model"/>
+									<listOptionValue builtIn="false" value="../App/Middleware"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.2095989891" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
@@ -86,6 +92,12 @@
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include"/>
 									<listOptionValue builtIn="false" value="../App"/>
+									<listOptionValue builtIn="false" value="../App/System"/>
+									<listOptionValue builtIn="false" value="../App/UI"/>
+									<listOptionValue builtIn="false" value="../App/Utils"/>
+									<listOptionValue builtIn="false" value="../App/Engine"/>
+									<listOptionValue builtIn="false" value="../App/Model"/>
+									<listOptionValue builtIn="false" value="../App/Middleware"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.input.cpp.1068740254" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.input.cpp"/>
 							</tool>

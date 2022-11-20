@@ -49,7 +49,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "swvPrint.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
